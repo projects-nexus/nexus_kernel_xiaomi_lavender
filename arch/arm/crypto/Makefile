@@ -39,6 +39,8 @@ ghash-arm-ce-y	:= ghash-ce-core.o ghash-ce-glue.o
 
 ccflags-y := -O3
 
+ccflags-y := -O3
+
 quiet_cmd_perl = PERL    $@
       cmd_perl = $(PERL) $(<) > $(@)
 
