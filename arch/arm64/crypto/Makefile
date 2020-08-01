@@ -23,6 +23,14 @@ poly-hash-ce-y := poly-hash-ce-glue.o poly-hash-ce-core.o
 obj-$(CONFIG_CRYPTO_AES_ARM64_CE) += aes-ce-cipher.o
 aes-ce-cipher-y := aes-ce-core.o aes-ce-glue.o
 
+ifeq ($(cc-name),clang)
+CFLAGS_aes-ce-cipher.o += -mcpu=cortex-a53+crypto -mtune=cortex-a53+crypto
+endif
+
+ifeq ($(cc-name),gcc)
+CFLAGS_aes-ce-cipher.o += -mcpu=cortex-a73+crypto.cortex-a53+crypto -mtune=cortex-a73+crypto.cortex-a53+crypto
+endif
+
 obj-$(CONFIG_CRYPTO_AES_ARM64_CE_CCM) += aes-ce-ccm.o
 aes-ce-ccm-y := aes-ce-ccm-glue.o aes-ce-ccm-core.o
 
