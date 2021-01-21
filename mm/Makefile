@@ -9,6 +9,11 @@ KASAN_SANITIZE_slub.o := n
 # Since __builtin_frame_address does work as used, disable the warning.
 CFLAGS_usercopy.o += $(call cc-disable-warning, frame-address)
 
+# Disable void-pointer-to-enum-cast
+ifeq ($(cc-name),clang)
+EXTRA_CFLAGS += $(call cc-disable-warning, void-pointer-to-enum-cast)
+endif
+
 # These files are disabled because they produce non-interesting and/or
 # flaky coverage that is not a function of syscall inputs. E.g. slab is out of
 # free pages, or a task is migrated between nodes.

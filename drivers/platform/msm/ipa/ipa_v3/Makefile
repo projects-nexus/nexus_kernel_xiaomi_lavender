@@ -1,3 +1,8 @@
+# Disable void-pointer-to-enum-cast
+ifeq ($(cc-name),clang)
+EXTRA_CFLAGS += $(call cc-disable-warning, void-pointer-to-enum-cast)
+endif
+
 obj-$(CONFIG_IPA3) += ipahal/
 
 obj-$(CONFIG_IPA3) += ipat.o
