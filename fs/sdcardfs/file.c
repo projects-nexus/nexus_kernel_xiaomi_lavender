@@ -12,6 +12,7 @@
  * Copyright (c) 2009     Shrikar Archak
  * Copyright (c) 2003-2011 Stony Brook University
  * Copyright (c) 2003-2011 The Research Foundation of SUNY
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This file is dual licensed.  It may be redistributed and/or modified
  * under the terms of the Apache 2.0 License OR version 2 of the GNU
@@ -22,6 +23,7 @@
 #ifdef CONFIG_SDCARD_FS_FADV_NOACTIVE
 #include <linux/backing-dev.h>
 #endif
+#include <asm/ioctls.h>
 
 static ssize_t sdcardfs_read(struct file *file, char __user *buf,
 			   size_t count, loff_t *ppos)
@@ -116,6 +118,13 @@ static long sdcardfs_unlocked_ioctl(struct file *file, unsigned int cmd,
 	/* XXX: use vfs_ioctl if/when VFS exports it */
 	if (!lower_file || !lower_file->f_op)
 		goto out;
+
+	if (cmd == FIONREAD) {
+		int __user *p = (int __user *)arg;;
+		fsstack_copy_inode_size(file_inode(file), file_inode(lower_file));
+		put_user(i_size_read(file_inode(file)) - file->f_pos, p);
+		return 0;
+	}
 
 	/* save current_cred and override it */
 	saved_cred = override_fsids(sbi, SDCARDFS_I(file_inode(file))->data);
