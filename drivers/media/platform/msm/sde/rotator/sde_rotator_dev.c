@@ -2633,6 +2633,8 @@ static int sde_rotator_probe(struct platform_device *pdev)
 
 	rot_dev->debugfs_root = sde_rotator_create_debugfs(rot_dev);
 
+	device_enable_async_suspend(&pdev->dev);
+
 	SDEDEV_INFO(&pdev->dev, "SDE v4l2 rotator probe success\n");
 
 	return 0;
