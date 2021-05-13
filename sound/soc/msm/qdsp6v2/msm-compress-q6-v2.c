@@ -2443,7 +2443,7 @@ static int msm_compr_trigger(struct snd_compr_stream *cstream, int cmd)
 			atomic_set(&prtd->eos, 1);
 			pr_debug("issue CMD_EOS stream_id %d\n", ac->stream_id);
 			q6asm_stream_cmd_nowait(ac, CMD_EOS, ac->stream_id);
-			pr_info("PARTIAL DRAIN, do not wait for EOS ack\n");
+			pr_debug("PARTIAL DRAIN, do not wait for EOS ack\n");
 
 			/* send a zero length buffer */
 			atomic_set(&prtd->xrun, 0);
