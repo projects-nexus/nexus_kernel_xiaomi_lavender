@@ -201,14 +201,14 @@ static void sde_rotator_format_recalc(struct v4l2_format *f)
 
 	fmt = sde_get_format_params(f->fmt.pix.pixelformat);
 	if (!fmt) {
-		SDEROT_ERR("invalid format\n");
+		SDEROT_DBG("invalid format\n");
 		goto error_fmt;
 	}
 
 	ret = sde_mdp_get_plane_sizes(fmt,
 		f->fmt.pix.width, f->fmt.pix.height, &ps, 0, 0);
 	if (ret) {
-		SDEROT_ERR("invalid plane size\n");
+		SDEROT_DBG("invalid plane size\n");
 		goto error_fmt;
 	}
 
@@ -592,7 +592,7 @@ static void sde_rotator_put_userptr(void *buf_priv)
 
 	if (!buf->rot_dev || !buf->ctx) {
 		WARN_ON(!buf->rot_dev || !buf->ctx);
-		SDEROT_ERR("null rotator device/context\n");
+		SDEROT_DBG("null rotator device/context\n");
 		return;
 	}
 
@@ -2065,7 +2065,7 @@ static void sde_rotator_retire_handler(struct kthread_work *work)
 	ctx = container_of(work, struct sde_rotator_ctx, retire_work);
 
 	if (!ctx || !ctx->rot_dev) {
-		SDEROT_ERR("null context/device\n");
+		SDEROT_DBG("null context/device\n");
 		return;
 	}
 
@@ -2281,7 +2281,7 @@ static void sde_rotator_submit_handler(struct kthread_work *work)
 	ctx = container_of(work, struct sde_rotator_ctx, submit_work);
 
 	if (!ctx->rot_dev) {
-		SDEROT_ERR("null device\n");
+		SDEROT_DBG("null device\n");
 		return;
 	}
 
@@ -2330,7 +2330,7 @@ static void sde_rotator_device_run(void *priv)
 	int ret;
 
 	if (!ctx || !ctx->rot_dev) {
-		SDEROT_ERR("null context/device\n");
+		SDEROT_DBG("null context/device\n");
 		return;
 	}
 
@@ -2457,7 +2457,7 @@ static void sde_rotator_job_abort(void *priv)
 	struct sde_rotator_device *rot_dev;
 
 	if (!ctx || !ctx->rot_dev) {
-		SDEROT_ERR("null context/device\n");
+		SDEROT_DBG("null context/device\n");
 		return;
 	}
 
@@ -2478,7 +2478,7 @@ static int sde_rotator_job_ready(void *priv)
 	int ret = 0;
 
 	if (!ctx || !ctx->rot_dev) {
-		SDEROT_ERR("null context/device\n");
+		SDEROT_DBG("null context/device\n");
 		return 0;
 	}
 

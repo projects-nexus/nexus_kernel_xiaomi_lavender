@@ -40,7 +40,7 @@ int sde_rotator_r3_create_debugfs(struct sde_rot_mgr *mgr,
 
 	if (!debugfs_create_bool("dbgmem", S_IRUGO | S_IWUSR,
 			debugfs_root, &hw_data->dbgmem)) {
-		SDEROT_ERR("fail create dbgmem\n");
+		SDEROT_DBG("fail create dbgmem\n");
 		return -EINVAL;
 	}
 

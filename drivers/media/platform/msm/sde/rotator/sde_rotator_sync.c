@@ -38,7 +38,7 @@ struct sde_rot_timeline *sde_rotator_create_timeline(const char *name)
 	struct sde_rot_timeline *tl;
 
 	if (!name) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return NULL;
 	}
 
@@ -50,7 +50,7 @@ struct sde_rot_timeline *sde_rotator_create_timeline(const char *name)
 	SDEROT_DBG("timeline name=%s\n", tl_name);
 	tl->timeline = sw_sync_timeline_create(tl_name);
 	if (!tl->timeline) {
-		SDEROT_ERR("fail to allocate timeline\n");
+		SDEROT_DBG("fail to allocate timeline\n");
 		kfree(tl);
 		return NULL;
 	}
@@ -69,7 +69,7 @@ struct sde_rot_timeline *sde_rotator_create_timeline(const char *name)
 void sde_rotator_destroy_timeline(struct sde_rot_timeline *tl)
 {
 	if (!tl) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return;
 	}
 
@@ -88,7 +88,7 @@ void sde_rotator_resync_timeline(struct sde_rot_timeline *tl)
 	int val;
 
 	if (!tl || !tl->timeline) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return;
 	}
 	mutex_lock(&tl->lock);
@@ -116,7 +116,7 @@ struct sde_rot_sync_fence *sde_rotator_get_sync_fence(
 	struct sync_fence *fence;
 
 	if (!tl || !tl->timeline) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return NULL;
 	}
 
@@ -125,14 +125,14 @@ struct sde_rot_sync_fence *sde_rotator_get_sync_fence(
 
 	sync_pt = sw_sync_pt_create(tl->timeline, val);
 	if (sync_pt == NULL) {
-		SDEROT_ERR("cannot create sync point\n");
+		SDEROT_DBG("cannot create sync point\n");
 		goto sync_pt_create_err;
 	}
 
 	/* create fence */
 	fence = sync_fence_create(tl->fence_name, sync_pt);
 	if (fence == NULL) {
-		SDEROT_ERR("%s: cannot create fence\n",
+		SDEROT_DBG("%s: cannot create fence\n",
 				tl->fence_name);
 		goto sync_fence_create_err;
 	}
@@ -141,7 +141,7 @@ struct sde_rot_sync_fence *sde_rotator_get_sync_fence(
 		int fd = get_unused_fd_flags(0);
 
 		if (fd < 0) {
-			SDEROT_ERR("get_unused_fd_flags failed error:0x%x\n",
+			SDEROT_DBG("get_unused_fd_flags failed error:0x%x\n",
 					fd);
 			goto get_fd_err;
 		}
@@ -176,7 +176,7 @@ sync_pt_create_err:
 int sde_rotator_inc_timeline(struct sde_rot_timeline *tl, int increment)
 {
 	if (!tl || !tl->timeline) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return -EINVAL;
 	}
 
@@ -206,7 +206,7 @@ u32 sde_rotator_get_timeline_commit_ts(struct sde_rot_timeline *tl)
 u32 sde_rotator_get_timeline_retire_ts(struct sde_rot_timeline *tl)
 {
 	if (!tl || !tl->timeline) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return 0;
 	}
 
@@ -220,7 +220,7 @@ u32 sde_rotator_get_timeline_retire_ts(struct sde_rot_timeline *tl)
 void sde_rotator_put_sync_fence(struct sde_rot_sync_fence *fence)
 {
 	if (!fence) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return;
 	}
 
@@ -259,14 +259,14 @@ int sde_rotator_get_sync_fence_fd(struct sde_rot_sync_fence *fence)
 	int fd;
 
 	if (!fence) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return -EINVAL;
 	}
 
 	fd = get_unused_fd_flags(0);
 
 	if (fd < 0) {
-		SDEROT_ERR("fail to get unused fd\n");
+		SDEROT_DBG("fail to get unused fd\n");
 		return fd;
 	}
 

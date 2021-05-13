@@ -36,7 +36,7 @@ struct sde_mdp_ctl *sde_mdp_ctl_alloc(struct sde_rot_data_type *mdata,
 			     0x00002600, 0x00002800};
 
 	if (off >= ARRAY_SIZE(offset)) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -73,7 +73,7 @@ struct sde_mdp_mixer *sde_mdp_mixer_assign(u32 id, bool wb)
 	static const u32 offset[] = {0x00048000, 0x00049000};
 
 	if (id >= ARRAY_SIZE(offset)) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -114,7 +114,7 @@ struct sde_mdp_mixer *sde_mdp_mixer_get(struct sde_mdp_ctl *ctl, int mux)
 	struct sde_mdp_mixer *mixer = NULL;
 
 	if (!ctl) {
-		SDEROT_ERR("ctl not initialized\n");
+		SDEROT_DBG("ctl not initialized\n");
 		return NULL;
 	}
 
@@ -170,7 +170,7 @@ int sde_mdp_display_wait4comp(struct sde_mdp_ctl *ctl)
 	int ret = 0;
 
 	if (!ctl) {
-		SDEROT_ERR("invalid ctl\n");
+		SDEROT_DBG("invalid ctl\n");
 		return -ENODEV;
 	}
 
@@ -187,7 +187,7 @@ int sde_mdp_display_commit(struct sde_mdp_ctl *ctl, void *arg,
 	u32 ctl_flush_bits = 0;
 
 	if (!ctl) {
-		SDEROT_ERR("display function not set\n");
+		SDEROT_DBG("display function not set\n");
 		return -ENODEV;
 	}
 
@@ -195,7 +195,7 @@ int sde_mdp_display_commit(struct sde_mdp_ctl *ctl, void *arg,
 		ret = ctl->ops.prepare_fnc(ctl, arg);
 
 	if (ret) {
-		SDEROT_ERR("error preparing display\n");
+		SDEROT_DBG("error preparing display\n");
 		goto done;
 	}
 
@@ -235,7 +235,7 @@ struct sde_mdp_ctl *sde_mdp_ctl_mixer_switch(struct sde_mdp_ctl *ctl,
 	if (ctl->wb_type == return_type)
 		return ctl;
 
-	SDEROT_ERR("unable to switch mixer to type=%d\n", return_type);
+	SDEROT_DBG("unable to switch mixer to type=%d\n", return_type);
 	return NULL;
 }
 
@@ -247,7 +247,7 @@ struct sde_mdp_writeback *sde_mdp_wb_assign(u32 num, u32 reg_index)
 	static const u32 offset[] = {0x00065000, 0x00065800, 0x00066000};
 
 	if (num >= ARRAY_SIZE(offset)) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return ERR_PTR(-EINVAL);
 	}
 
