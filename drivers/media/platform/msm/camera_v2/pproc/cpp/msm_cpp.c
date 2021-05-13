@@ -132,7 +132,7 @@ static int32_t msm_cpp_reset_vbif_and_load_fw(struct cpp_device *cpp_dev);
 
 #define CPP_LOW(fmt, args...) do { \
 	if (ENABLE_CPP_LOW) \
-		pr_info(fmt, ##args); \
+		pr_debug(fmt, ##args); \
 	} while (0)
 
 #define ERR_USER_COPY(to) pr_err("copy %s user\n", \
@@ -1141,7 +1141,7 @@ static int cpp_init_hardware(struct cpp_device *cpp_dev)
 		if (vbif_version == VBIF_VERSION_2_3_0)
 			cpp_dev->hw_info.cpp_hw_version = CPP_HW_VERSION_4_0_0;
 	}
-	pr_info("CPP HW Version: 0x%x\n", cpp_dev->hw_info.cpp_hw_version);
+	pr_debug("CPP HW Version: 0x%x\n", cpp_dev->hw_info.cpp_hw_version);
 	cpp_dev->hw_info.cpp_hw_caps =
 		msm_camera_io_r(cpp_dev->cpp_hw_base + 0x4);
 
@@ -1222,7 +1222,7 @@ static void cpp_release_hardware(struct cpp_device *cpp_dev)
 		rc = msm_cpp_update_bandwidth_setting(cpp_dev, 0, 0);
 	}
 	cpp_dev->stream_cnt = 0;
-	pr_info("cpp hw release done\n");
+	pr_debug("cpp hw release done\n");
 }
 
 static int32_t cpp_load_fw(struct cpp_device *cpp_dev, char *fw_name_bin)

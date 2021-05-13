@@ -821,7 +821,7 @@ static int32_t msm_ois_i2c_probe(struct i2c_client *client,
 	ois_ctrl_t->msm_sd.close_seq = MSM_SD_CLOSE_2ND_CATEGORY | 0x2;
 	msm_sd_register(&ois_ctrl_t->msm_sd);
 	ois_ctrl_t->ois_state = OIS_DISABLE_STATE;
-	pr_info("msm_ois_i2c_probe: succeeded\n");
+	pr_debug("msm_ois_i2c_probe: succeeded\n");
 	CDBG("Exit\n");
 
 probe_failure:
