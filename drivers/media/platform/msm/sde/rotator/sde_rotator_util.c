@@ -164,7 +164,7 @@ int sde_mdp_get_rau_strides(u32 w, u32 h,
 		ps->rau_h[0] = 4;
 		ps->rau_h[1] = 0;
 	} else  {
-		SDEROT_ERR("Invalid format=%d\n", fmt->format);
+		SDEROT_DBG("Invalid format=%d\n", fmt->format);
 		return -EINVAL;
 	}
 
@@ -262,7 +262,7 @@ static int sde_mdp_get_ubwc_plane_size(struct sde_mdp_format_params *fmt,
 		ps->plane_size[2] = ALIGN(ps->ystride[2] *
 			ALIGN(DIV_ROUND_UP(height, 4), 16), 4096);
 	} else {
-		SDEROT_ERR("%s: UBWC format not supported for fmt:%d\n",
+		SDEROT_DBG("%s: UBWC format not supported for fmt:%d\n",
 			__func__, fmt->format);
 		rc = -EINVAL;
 	}
@@ -408,7 +408,7 @@ static int sde_mdp_ubwc_data_check(struct sde_mdp_data *data,
 	/* From this point, assumption is plane 0 is to be divided */
 	data_size = data->p[0].len;
 	if (data_size < ps->total_size) {
-		SDEROT_ERR(
+		SDEROT_DBG(
 			"insufficient current mem len=%lu required mem len=%u\n",
 			data_size, ps->total_size);
 		return -ENOMEM;
@@ -485,7 +485,7 @@ static int sde_mdp_ubwc_data_check(struct sde_mdp_data *data,
 
 end:
 	if (data->num_planes != ps->num_planes) {
-		SDEROT_ERR("num_planes don't match: fmt:%d, data:%d, ps:%d\n",
+		SDEROT_DBG("num_planes don't match: fmt:%d, data:%d, ps:%d\n",
 				fmt->format, data->num_planes, ps->num_planes);
 		return -EINVAL;
 	}
@@ -493,7 +493,7 @@ end:
 	inc = ((fmt->format == SDE_PIX_FMT_Y_CBCR_H2V2_UBWC) ? 1 : 2);
 	for (i = 0; i < SDE_ROT_MAX_PLANES; i += inc) {
 		if (data->p[i].len != ps->plane_size[i]) {
-			SDEROT_ERR(
+			SDEROT_DBG(
 				"plane:%d fmt:%d, len does not match: data:%lu, ps:%d\n",
 					i, fmt->format, data->p[i].len,
 					ps->plane_size[i]);
@@ -536,7 +536,7 @@ int sde_mdp_data_check(struct sde_mdp_data *data,
 			curr->addr = prev->addr + psize;
 		}
 		if (curr->len < ps->plane_size[i]) {
-			SDEROT_ERR("insufficient mem=%lu p=%d len=%u\n",
+			SDEROT_DBG("insufficient mem=%lu p=%d len=%u\n",
 			       curr->len, i, ps->plane_size[i]);
 			return -ENOMEM;
 		}
@@ -556,18 +556,18 @@ int sde_validate_offset_for_ubwc_format(
 
 	ret = sde_rot_get_ubwc_micro_dim(fmt->format, &micro_w, &micro_h);
 	if (ret || !micro_w || !micro_h) {
-		SDEROT_ERR("Could not get valid micro tile dimensions\n");
+		SDEROT_DBG("Could not get valid micro tile dimensions\n");
 		return -EINVAL;
 	}
 
 	if (x % (micro_w * UBWC_META_MACRO_W_H)) {
-		SDEROT_ERR("x=%d does not align with meta width=%d\n", x,
+		SDEROT_DBG("x=%d does not align with meta width=%d\n", x,
 			micro_w * UBWC_META_MACRO_W_H);
 		return -EINVAL;
 	}
 
 	if (y % (micro_h * UBWC_META_MACRO_W_H)) {
-		SDEROT_ERR("y=%d does not align with meta height=%d\n", y,
+		SDEROT_DBG("y=%d does not align with meta height=%d\n", y,
 			UBWC_META_MACRO_W_H);
 		return -EINVAL;
 	}
@@ -584,7 +584,7 @@ void sde_rot_ubwc_data_calc_offset(struct sde_mdp_data *data, u16 x, u16 y,
 
 	ret = sde_rot_get_ubwc_micro_dim(fmt->format, &micro_w, &micro_h);
 	if (ret || !micro_w || !micro_h) {
-		SDEROT_ERR("Could not get valid micro tile dimensions\n");
+		SDEROT_DBG("Could not get valid micro tile dimensions\n");
 		return;
 	}
 	macro_w = 4 * micro_w;
@@ -633,7 +633,7 @@ void sde_rot_ubwc_data_calc_offset(struct sde_mdp_data *data, u16 x, u16 y,
 		}
 	} else if (fmt->format == SDE_PIX_FMT_Y_CBCR_H2V2_TP10_UBWC) {
 		/* TODO: */
-		SDEROT_ERR("UBWC TP10 format not implemented yet");
+		SDEROT_DBG("UBWC TP10 format not implemented yet");
 		ret = 1;
 		goto done;
 	} else {
@@ -771,14 +771,14 @@ static int sde_mdp_get_img(struct sde_fb_data *img,
 
 	if ((data->flags & SDE_SECURE_CAMERA_SESSION) &&
 			IS_ERR_OR_NULL(img->handle)) {
-		SDEROT_ERR("error on ion_import_fb\n");
+		SDEROT_DBG("error on ion_import_fb\n");
 		ret = PTR_ERR(img->handle);
 		img->handle = NULL;
 		return ret;
 	} else if (data->flags & SDE_ROT_EXT_DMA_BUF) {
 		data->srcp_dma_buf = img->buffer;
 	} else if (IS_ERR(data->srcp_dma_buf)) {
-		SDEROT_ERR("error on dma_buf\n");
+		SDEROT_DBG("error on dma_buf\n");
 		ret = PTR_ERR(data->srcp_dma_buf);
 		data->srcp_dma_buf = NULL;
 		return ret;
@@ -793,7 +793,7 @@ static int sde_mdp_get_img(struct sde_fb_data *img,
 			sde_smmu_dma_buf_attach(data->srcp_dma_buf, dev,
 					domain);
 		if (IS_ERR(data->srcp_attachment)) {
-			SDEROT_ERR("%d Failed to attach dma buf\n", __LINE__);
+			SDEROT_DBG("%d Failed to attach dma buf\n", __LINE__);
 			ret = PTR_ERR(data->srcp_attachment);
 			goto err_put;
 		}
@@ -803,7 +803,7 @@ static int sde_mdp_get_img(struct sde_fb_data *img,
 			dma_buf_map_attachment(data->srcp_attachment,
 			sde_smmu_set_dma_direction(dir));
 		if (IS_ERR(data->srcp_table)) {
-			SDEROT_ERR("%d Failed to map attachment\n", __LINE__);
+			SDEROT_DBG("%d Failed to map attachment\n", __LINE__);
 			ret = PTR_ERR(data->srcp_table);
 			goto err_detach;
 		}
@@ -822,26 +822,26 @@ static int sde_mdp_get_img(struct sde_fb_data *img,
 			ihandle = img->handle;
 			if (IS_ERR_OR_NULL(ihandle)) {
 				ret = -EINVAL;
-				SDEROT_ERR("invalid ion handle\n");
+				SDEROT_DBG("invalid ion handle\n");
 				break;
 			}
 
 			sg_ptr = ion_sg_table(iclient, ihandle);
 			if (sg_ptr == NULL) {
-				SDEROT_ERR("ion sg table get failed\n");
+				SDEROT_DBG("ion sg table get failed\n");
 				ret = -EINVAL;
 				break;
 			}
 
 			if (sg_ptr->nents != 1) {
-				SDEROT_ERR("ion buffer mapping failed\n");
+				SDEROT_DBG("ion buffer mapping failed\n");
 				ret = -EINVAL;
 				break;
 			}
 
 			if (((uint64_t)sg_dma_address(sg_ptr->sgl) >=
 					PHY_ADDR_4G - sg_ptr->sgl->length)) {
-				SDEROT_ERR("ion buffer mapped size invalid\n");
+				SDEROT_DBG("ion buffer mapped size invalid\n");
 				ret = -EINVAL;
 				break;
 			}
@@ -886,7 +886,7 @@ static int sde_mdp_map_buffer(struct sde_mdp_img_data *data, bool rotator,
 					data->srcp_table, domain,
 					&data->addr, &data->len, dir);
 			if (IS_ERR_VALUE(ret)) {
-				SDEROT_ERR("smmu map buf failed:(%d)\n", ret);
+				SDEROT_DBG("smmu map buf failed:(%d)\n", ret);
 				goto err_unmap;
 			}
 			SDEROT_DBG("map %pad/%lx d:%u f:%x\n",
@@ -907,7 +907,7 @@ static int sde_mdp_map_buffer(struct sde_mdp_img_data *data, bool rotator,
 	}
 
 	if (!data->addr) {
-		SDEROT_ERR("start address is zero!\n");
+		SDEROT_DBG("start address is zero!\n");
 		sde_mdp_put_img(data, rotator, dir);
 		return -ENOMEM;
 	}
@@ -950,7 +950,7 @@ static int sde_mdp_data_get(struct sde_mdp_data *data,
 		rc = sde_mdp_get_img(&planes[i], &data->p[i], dev, rotator,
 				dir);
 		if (rc) {
-			SDEROT_ERR("failed to get buf p=%d flags=%x\n",
+			SDEROT_DBG("failed to get buf p=%d flags=%x\n",
 					i, flags);
 			while (i > 0) {
 				i--;
@@ -975,7 +975,7 @@ int sde_mdp_data_map(struct sde_mdp_data *data, bool rotator, int dir)
 	for (i = 0; i < data->num_planes; i++) {
 		rc = sde_mdp_map_buffer(&data->p[i], rotator, dir);
 		if (rc) {
-			SDEROT_ERR("failed to map buf p=%d\n", i);
+			SDEROT_DBG("failed to map buf p=%d\n", i);
 			while (i > 0) {
 				i--;
 				sde_mdp_put_img(&data->p[i], rotator, dir);
@@ -1011,7 +1011,7 @@ int sde_mdp_data_get_and_validate_size(struct sde_mdp_data *data,
 
 	fmt = sde_get_format_params(buffer->format);
 	if (!fmt) {
-		SDEROT_ERR("Format %d not supported\n", buffer->format);
+		SDEROT_DBG("Format %d not supported\n", buffer->format);
 		return -EINVAL;
 	}
 
@@ -1027,7 +1027,7 @@ int sde_mdp_data_get_and_validate_size(struct sde_mdp_data *data,
 				data->p[i].srcp_dma_buf->size : data->p[i].len;
 
 		if (plane_len < planes[i].offset) {
-			SDEROT_ERR("Offset=%d larger than buffer size=%lu\n",
+			SDEROT_DBG("Offset=%d larger than buffer size=%lu\n",
 				planes[i].offset, plane_len);
 			ret = -EINVAL;
 			goto buf_too_small;
@@ -1036,7 +1036,7 @@ int sde_mdp_data_get_and_validate_size(struct sde_mdp_data *data,
 	}
 
 	if (total_buf_len < ps.total_size) {
-		SDEROT_ERR("Buffer size=%lu, expected size=%d\n",
+		SDEROT_DBG("Buffer size=%lu, expected size=%d\n",
 				total_buf_len,
 			ps.total_size);
 		ret = -EINVAL;

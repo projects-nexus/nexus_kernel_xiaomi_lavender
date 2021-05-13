@@ -154,7 +154,7 @@ static struct sde_mdp_hw_resource *sde_rotator_hw_alloc(
 
 	mdp_hw->ctl = sde_mdp_ctl_alloc(mdata, offset);
 	if (IS_ERR_OR_NULL(mdp_hw->ctl)) {
-		SDEROT_ERR("unable to allocate ctl\n");
+		SDEROT_DBG("unable to allocate ctl\n");
 		ret = -ENODEV;
 		goto error;
 	}
@@ -162,7 +162,7 @@ static struct sde_mdp_hw_resource *sde_rotator_hw_alloc(
 
 	mdp_hw->wb = sde_mdp_wb_assign(wb_id, mdp_hw->ctl->num);
 	if (IS_ERR_OR_NULL(mdp_hw->wb)) {
-		SDEROT_ERR("unable to allocate wb\n");
+		SDEROT_DBG("unable to allocate wb\n");
 		ret = -ENODEV;
 		goto error;
 	}
@@ -170,7 +170,7 @@ static struct sde_mdp_hw_resource *sde_rotator_hw_alloc(
 	mdp_hw->ctl->wb = mdp_hw->wb;
 	mdp_hw->mixer = sde_mdp_mixer_assign(mdp_hw->wb->num, true);
 	if (IS_ERR_OR_NULL(mdp_hw->mixer)) {
-		SDEROT_ERR("unable to allocate wb mixer\n");
+		SDEROT_DBG("unable to allocate wb mixer\n");
 		ret = -ENODEV;
 		goto error;
 	}
@@ -188,7 +188,7 @@ static struct sde_mdp_hw_resource *sde_rotator_hw_alloc(
 		mdp_hw->ctl->opmode =  SDE_MDP_CTL_OP_ROT1_MODE;
 		break;
 	default:
-		SDEROT_ERR("invalid layer mixer=%d\n", mdp_hw->mixer->num);
+		SDEROT_DBG("invalid layer mixer=%d\n", mdp_hw->mixer->num);
 		ret = -EINVAL;
 		goto error;
 	}
@@ -206,7 +206,7 @@ static struct sde_mdp_hw_resource *sde_rotator_hw_alloc(
 	pipe_ndx = wb_id;
 	mdp_hw->pipe = sde_mdp_pipe_assign(mdata, mdp_hw->mixer, pipe_ndx);
 	if (IS_ERR_OR_NULL(mdp_hw->pipe)) {
-		SDEROT_ERR("dma pipe allocation failed\n");
+		SDEROT_DBG("dma pipe allocation failed\n");
 		ret = -ENODEV;
 		goto error;
 	}
@@ -314,7 +314,7 @@ static int sde_rotator_config_hw(struct sde_rot_hw_resource *hw,
 	int ret;
 
 	if (!hw || !entry) {
-		SDEROT_ERR("null hw resource/entry");
+		SDEROT_DBG("null hw resource/entry");
 		return -EINVAL;
 	}
 
@@ -352,7 +352,7 @@ static int sde_rotator_kickoff_entry(struct sde_rot_hw_resource *hw,
 	struct sde_mdp_writeback_arg wb_args;
 
 	if (!hw || !entry) {
-		SDEROT_ERR("null hw resource/entry");
+		SDEROT_DBG("null hw resource/entry");
 		return -EINVAL;
 	}
 
@@ -373,7 +373,7 @@ static int sde_rotator_wait_for_entry(struct sde_rot_hw_resource *hw,
 	struct sde_mdp_ctl *ctl;
 
 	if (!hw || !entry) {
-		SDEROT_ERR("null hw resource/entry");
+		SDEROT_DBG("null hw resource/entry");
 		return -EINVAL;
 	}
 
@@ -571,7 +571,7 @@ static int sde_rotator_hw_parse_dt(struct sde_rotator_r1_data *hw_data,
 static int sde_rotator_hw_rev_init(struct sde_rot_data_type *mdata)
 {
 	if (!mdata) {
-		SDEROT_ERR("null rotator data\n");
+		SDEROT_DBG("null rotator data\n");
 		return -EINVAL;
 	}
 
@@ -672,7 +672,7 @@ int sde_rotator_r1_init(struct sde_rot_mgr *mgr)
 	int ret;
 
 	if (!mgr || !mgr->pdev) {
-		SDEROT_ERR("null rotator manager/platform device");
+		SDEROT_DBG("null rotator manager/platform device");
 		return -EINVAL;
 	}
 
@@ -701,14 +701,14 @@ int sde_rotator_r1_init(struct sde_rot_mgr *mgr)
 
 	hw_data->irq_num = platform_get_irq(mgr->pdev, 0);
 	if (hw_data->irq_num < 0) {
-		SDEROT_ERR("fail to get rotator irq\n");
+		SDEROT_DBG("fail to get rotator irq\n");
 	} else {
 		ret = devm_request_threaded_irq(&mgr->pdev->dev,
 				hw_data->irq_num,
 				sde_irq_handler, NULL,
 				0, "sde_rotator_r1", mdata);
 		if (ret) {
-			SDEROT_ERR("fail to request irq r:%d\n", ret);
+			SDEROT_DBG("fail to request irq r:%d\n", ret);
 			hw_data->irq_num = -1;
 		} else {
 			disable_irq(hw_data->irq_num);

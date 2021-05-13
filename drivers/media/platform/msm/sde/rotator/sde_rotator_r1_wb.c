@@ -147,7 +147,7 @@ static int sde_mdp_writeback_format_setup(struct sde_mdp_writeback_ctx *ctx,
 
 	fmt = sde_get_format_params(format);
 	if (!fmt) {
-		SDEROT_ERR("wb format=%d not supported\n", format);
+		SDEROT_DBG("wb format=%d not supported\n", format);
 		return -EINVAL;
 	}
 
@@ -238,13 +238,13 @@ static int sde_mdp_writeback_prepare_rot(struct sde_mdp_ctl *ctl, void *arg)
 
 	entry = (struct sde_rot_entry *) wb_args->priv_data;
 	if (!entry) {
-		SDEROT_ERR("unable to retrieve rot session ctl=%d\n", ctl->num);
+		SDEROT_DBG("unable to retrieve rot session ctl=%d\n", ctl->num);
 		return -ENODEV;
 	}
 	item = &entry->item;
 	mdata = ctl->mdata;
 	if (!mdata) {
-		SDEROT_ERR("no mdata attached to ctl=%d", ctl->num);
+		SDEROT_DBG("no mdata attached to ctl=%d", ctl->num);
 		return -ENODEV;
 	}
 	SDEROT_DBG("rot setup wb_num=%d\n", ctx->wb_num);
@@ -302,7 +302,7 @@ static void sde_mdp_writeback_intr_done(void *arg)
 	struct sde_mdp_writeback_ctx *ctx = ctl->priv_data;
 
 	if (!ctx) {
-		SDEROT_ERR("invalid ctx\n");
+		SDEROT_DBG("invalid ctx\n");
 		return;
 	}
 
@@ -321,7 +321,7 @@ static int sde_mdp_wb_wait4comp(struct sde_mdp_ctl *ctl, void *arg)
 
 	ctx = (struct sde_mdp_writeback_ctx *) ctl->priv_data;
 	if (!ctx) {
-		SDEROT_ERR("invalid ctx\n");
+		SDEROT_DBG("invalid ctx\n");
 		return -ENODEV;
 	}
 
@@ -432,7 +432,7 @@ static int sde_mdp_writeback_display(struct sde_mdp_ctl *ctl, void *arg)
 		return -ENODEV;
 
 	if (ctx->comp_cnt) {
-		SDEROT_ERR("previous kickoff not completed yet, ctl=%d\n",
+		SDEROT_DBG("previous kickoff not completed yet, ctl=%d\n",
 					ctl->num);
 		return -EPERM;
 	}
@@ -447,7 +447,7 @@ static int sde_mdp_writeback_display(struct sde_mdp_ctl *ctl, void *arg)
 
 	ret = sde_mdp_writeback_addr_setup(ctx, wb_args->data);
 	if (ret) {
-		SDEROT_ERR("writeback data setup error ctl=%d\n", ctl->num);
+		SDEROT_DBG("writeback data setup error ctl=%d\n", ctl->num);
 		return ret;
 	}
 
@@ -464,7 +464,7 @@ static int sde_mdp_writeback_display(struct sde_mdp_ctl *ctl, void *arg)
 		enable_irq(ctl->irq_num);
 	ret = sde_smmu_ctrl(1);
 	if (IS_ERR_VALUE(ret)) {
-		SDEROT_ERR("IOMMU attach failed\n");
+		SDEROT_DBG("IOMMU attach failed\n");
 		return ret;
 	}
 
@@ -499,12 +499,12 @@ int sde_mdp_writeback_start(struct sde_mdp_ctl *ctl)
 	if (mem_sel < SDE_MDP_MAX_WRITEBACK) {
 		ctx = &wb_ctx_list[mem_sel];
 		if (ctx->ref_cnt) {
-			SDEROT_ERR("writeback in use %d\n", mem_sel);
+			SDEROT_DBG("writeback in use %d\n", mem_sel);
 			return -EBUSY;
 		}
 		ctx->ref_cnt++;
 	} else {
-		SDEROT_ERR("invalid writeback mode %d\n", mem_sel);
+		SDEROT_DBG("invalid writeback mode %d\n", mem_sel);
 		return -EINVAL;
 	}
 
