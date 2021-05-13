@@ -137,7 +137,7 @@ struct sde_mdp_pipe *sde_mdp_pipe_assign(struct sde_rot_data_type *mdata,
 	};
 
 	if (ndx >= ARRAY_SIZE(offset)) {
-		SDEROT_ERR("invalid parameters\n");
+		SDEROT_DBG("invalid parameters\n");
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -374,7 +374,7 @@ int sde_mdp_pipe_queue_data(struct sde_mdp_pipe *pipe,
 	struct sde_rot_data_type *mdata = sde_rot_get_mdata();
 
 	if (!pipe) {
-		SDEROT_ERR("pipe not setup properly for queue\n");
+		SDEROT_DBG("pipe not setup properly for queue\n");
 		return -ENODEV;
 	}
 
@@ -399,14 +399,14 @@ int sde_mdp_pipe_queue_data(struct sde_mdp_pipe *pipe,
 
 		ret = sde_mdp_image_setup(pipe, src_data);
 		if (ret) {
-			SDEROT_ERR("image setup error for pnum=%d\n",
+			SDEROT_DBG("image setup error for pnum=%d\n",
 					pipe->num);
 			goto done;
 		}
 
 		ret = sde_mdp_format_setup(pipe);
 		if (ret) {
-			SDEROT_ERR("format %d setup error pnum=%d\n",
+			SDEROT_DBG("format %d setup error pnum=%d\n",
 			       pipe->src_fmt->format, pipe->num);
 			goto done;
 		}
@@ -419,7 +419,7 @@ int sde_mdp_pipe_queue_data(struct sde_mdp_pipe *pipe,
 
 	ret = sde_mdp_src_addr_setup(pipe, src_data);
 	if (ret) {
-		SDEROT_ERR("addr setup error for pnum=%d\n", pipe->num);
+		SDEROT_DBG("addr setup error for pnum=%d\n", pipe->num);
 		goto done;
 	}
 

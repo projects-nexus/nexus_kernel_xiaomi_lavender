@@ -94,7 +94,7 @@ static int sde_mdp_wait_for_xin_halt(u32 xin_id)
 		status, (status & idle_mask),
 		1000, XIN_HALT_TIMEOUT_US);
 	if (rc == -ETIMEDOUT) {
-		SDEROT_ERR("VBIF client %d not halting. TIMEDOUT.\n",
+		SDEROT_DBG("VBIF client %d not halting. TIMEDOUT.\n",
 			xin_id);
 	} else {
 		SDEROT_DBG("VBIF client %d is halted\n", xin_id);
@@ -263,7 +263,7 @@ void sde_mdp_set_ot_limit(struct sde_mdp_set_ot_params *params)
 	if (params->rotsts_base && params->rotsts_busy_mask) {
 		sts = readl_relaxed(params->rotsts_base);
 		if (sts & params->rotsts_busy_mask) {
-			SDEROT_ERR(
+			SDEROT_DBG(
 				"Rotator still busy, should not modify VBIF\n");
 			SDEROT_EVTLOG_TOUT_HANDLER(
 				"rot", "vbif_dbg_bus", "panic");
@@ -307,7 +307,7 @@ struct reg_bus_client *sde_reg_bus_vote_client_create(char *client_name)
 	static u32 id;
 
 	if (client_name == NULL) {
-		SDEROT_ERR("client name is null\n");
+		SDEROT_DBG("client name is null\n");
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -333,7 +333,7 @@ void sde_reg_bus_vote_client_destroy(struct reg_bus_client *client)
 	struct sde_rot_data_type *sde_res = sde_rot_get_mdata();
 
 	if (!client) {
-		SDEROT_ERR("reg bus vote: invalid client handle\n");
+		SDEROT_DBG("reg bus vote: invalid client handle\n");
 	} else {
 		SDEROT_DBG("bus vote client %s destroyed:%p id:%u\n",
 			client->name, client, client->id);
@@ -453,7 +453,7 @@ static int sde_mdp_parse_vbif_xin_id(struct platform_device *pdev,
 	mdata->vbif_xin_id = kzalloc(sizeof(u32) *
 			mdata->nxid, GFP_KERNEL);
 	if (!mdata->vbif_xin_id) {
-		SDEROT_ERR("xin alloc failure\n");
+		SDEROT_DBG("xin alloc failure\n");
 		return -ENOMEM;
 	}
 	if (default_xin_id) {
@@ -464,7 +464,7 @@ static int sde_mdp_parse_vbif_xin_id(struct platform_device *pdev,
 			"qcom,mdss-rot-xin-id", mdata->vbif_xin_id,
 				mdata->nxid);
 		if (rc) {
-			SDEROT_ERR("vbif xin id setting not found\n");
+			SDEROT_DBG("vbif xin id setting not found\n");
 			return rc;
 		}
 	}
@@ -614,7 +614,7 @@ int sde_rotator_base_init(struct sde_rot_data_type **pmdata,
 
 	rc = sde_rot_ioremap_byname(pdev, &mdata->sde_io, "mdp_phys");
 	if (rc) {
-		SDEROT_ERR("unable to map SDE base\n");
+		SDEROT_DBG("unable to map SDE base\n");
 		goto probe_done;
 	}
 	SDEROT_DBG("SDE ROT HW Base addr=0x%x len=0x%x\n",
@@ -623,7 +623,7 @@ int sde_rotator_base_init(struct sde_rot_data_type **pmdata,
 
 	rc = sde_rot_ioremap_byname(pdev, &mdata->vbif_nrt_io, "rot_vbif_phys");
 	if (rc) {
-		SDEROT_ERR("unable to map SDE ROT VBIF base\n");
+		SDEROT_DBG("unable to map SDE ROT VBIF base\n");
 		goto probe_done;
 	}
 	SDEROT_DBG("SDE ROT VBIF HW Base addr=%p len=0x%x\n",
@@ -631,25 +631,25 @@ int sde_rotator_base_init(struct sde_rot_data_type **pmdata,
 
 	rc = sde_mdp_parse_dt_misc(pdev, mdata);
 	if (rc) {
-		SDEROT_ERR("Error in device tree : misc\n");
+		SDEROT_DBG("Error in device tree : misc\n");
 		goto probe_done;
 	}
 
 	rc = sde_mdp_bus_scale_register(mdata);
 	if (rc) {
-		SDEROT_ERR("unable to register bus scaling\n");
+		SDEROT_DBG("unable to register bus scaling\n");
 		goto probe_done;
 	}
 
 	rc = sde_smmu_init(&pdev->dev);
 	if (rc) {
-		SDEROT_ERR("sde smmu init failed %d\n", rc);
+		SDEROT_DBG("sde smmu init failed %d\n", rc);
 		goto probe_done;
 	}
 
 	mdata->iclient = msm_ion_client_create(mdata->pdev->name);
 	if (IS_ERR_OR_NULL(mdata->iclient)) {
-		SDEROT_ERR("msm_ion_client_create() return error (%pK)\n",
+		SDEROT_DBG("msm_ion_client_create() return error (%pK)\n",
 				mdata->iclient);
 		mdata->iclient = NULL;
 		rc = -EFAULT;

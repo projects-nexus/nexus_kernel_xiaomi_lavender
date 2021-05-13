@@ -1109,7 +1109,7 @@ static ssize_t sde_rotator_debug_base_reg_read(struct file *file,
 	int rc = 0;
 
 	if (!dbg) {
-		SDEROT_ERR("invalid handle\n");
+		SDEROT_DBG("invalid handle\n");
 		return -ENODEV;
 	}
 
@@ -1124,7 +1124,7 @@ static ssize_t sde_rotator_debug_base_reg_read(struct file *file,
 		dbg->buf = kzalloc(dbg->buf_len, GFP_KERNEL);
 
 		if (!dbg->buf) {
-			SDEROT_ERR("not enough memory to hold reg dump\n");
+			SDEROT_DBG("not enough memory to hold reg dump\n");
 			rc = -ENOMEM;
 			goto debug_read_error;
 		}
@@ -1168,7 +1168,7 @@ static ssize_t sde_rotator_debug_base_reg_read(struct file *file,
 
 	len = min(count, dbg->buf_len - (size_t) *ppos);
 	if (copy_to_user(user_buf, dbg->buf + *ppos, len)) {
-		SDEROT_ERR("failed to copy to user\n");
+		SDEROT_DBG("failed to copy to user\n");
 		rc = -EFAULT;
 		goto debug_read_error;
 	}
@@ -1244,7 +1244,7 @@ int sde_rotator_debug_register_base(struct sde_rotator_device *rot_dev,
 	ent_off = debugfs_create_file(dbgname, 0644, debugfs_root, dbg,
 			&sde_rotator_off_fops);
 	if (IS_ERR_OR_NULL(ent_off)) {
-		SDEROT_ERR("debugfs_create_file: offset fail\n");
+		SDEROT_DBG("debugfs_create_file: offset fail\n");
 		goto off_fail;
 	}
 
@@ -1252,7 +1252,7 @@ int sde_rotator_debug_register_base(struct sde_rotator_device *rot_dev,
 	ent_reg = debugfs_create_file(dbgname, 0644, debugfs_root, dbg,
 			&sde_rotator_reg_fops);
 	if (IS_ERR_OR_NULL(ent_reg)) {
-		SDEROT_ERR("debugfs_create_file: reg fail\n");
+		SDEROT_DBG("debugfs_create_file: reg fail\n");
 		goto reg_fail;
 	}
 
@@ -1282,79 +1282,79 @@ struct dentry *sde_rotator_create_debugfs(
 			SDE_ROTATOR_DRV_NAME, rot_dev->dev->id);
 	debugfs_root = debugfs_create_dir(dirname, NULL);
 	if (!debugfs_root) {
-		SDEROT_ERR("fail create debugfs root\n");
+		SDEROT_DBG("fail create debugfs root\n");
 		return NULL;
 	}
 
 	if (!debugfs_create_file("stats", S_IRUGO | S_IWUSR,
 		debugfs_root, rot_dev, &sde_rotator_stat_ops)) {
-		SDEROT_ERR("fail create debugfs stats\n");
+		SDEROT_DBG("fail create debugfs stats\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (!debugfs_create_file("raw", S_IRUGO | S_IWUSR,
 		debugfs_root, rot_dev, &sde_rotator_raw_ops)) {
-		SDEROT_ERR("fail create debugfs raw\n");
+		SDEROT_DBG("fail create debugfs raw\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (!debugfs_create_u32("fence_timeout", S_IRUGO | S_IWUSR,
 			debugfs_root, &rot_dev->fence_timeout)) {
-		SDEROT_ERR("fail create fence_timeout\n");
+		SDEROT_DBG("fail create fence_timeout\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (!debugfs_create_u32("streamoff_timeout", S_IRUGO | S_IWUSR,
 			debugfs_root, &rot_dev->streamoff_timeout)) {
-		SDEROT_ERR("fail create streamoff_timeout\n");
+		SDEROT_DBG("fail create streamoff_timeout\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (!debugfs_create_u32("early_submit", S_IRUGO | S_IWUSR,
 			debugfs_root, &rot_dev->early_submit)) {
-		SDEROT_ERR("fail create early_submit\n");
+		SDEROT_DBG("fail create early_submit\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (sde_rotator_base_create_debugfs(rot_dev->mdata, debugfs_root)) {
-		SDEROT_ERR("fail create base debugfs\n");
+		SDEROT_DBG("fail create base debugfs\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (sde_rotator_core_create_debugfs(rot_dev->mgr, debugfs_root)) {
-		SDEROT_ERR("fail create core debugfs\n");
+		SDEROT_DBG("fail create core debugfs\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (sde_rotator_evtlog_create_debugfs(rot_dev->mgr, debugfs_root)) {
-		SDEROT_ERR("fail create evtlog debugfs\n");
+		SDEROT_DBG("fail create evtlog debugfs\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (sde_rotator_perf_create_debugfs(rot_dev, debugfs_root)) {
-		SDEROT_ERR("fail create perf debugfs\n");
+		SDEROT_DBG("fail create perf debugfs\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (sde_rotator_debug_register_base(rot_dev, debugfs_root,
 				"sde", &rot_dev->mdata->sde_io)) {
-		SDEROT_ERR("fail create debug register for sde rotator\n");
+		SDEROT_DBG("fail create debug register for sde rotator\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}
 
 	if (sde_rotator_debug_register_base(rot_dev, debugfs_root,
 				"vbif_nrt", &rot_dev->mdata->vbif_nrt_io)) {
-		SDEROT_ERR("fail create debug register for sderot vbif_nrt\n");
+		SDEROT_DBG("fail create debug register for sderot vbif_nrt\n");
 		debugfs_remove_recursive(debugfs_root);
 		return NULL;
 	}

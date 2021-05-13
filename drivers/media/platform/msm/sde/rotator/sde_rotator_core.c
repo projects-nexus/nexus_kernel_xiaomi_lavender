@@ -100,12 +100,12 @@ static int sde_rotator_bus_scale_set_quota(struct sde_rot_bus_data_type *bus,
 	int ret;
 
 	if (!bus) {
-		SDEROT_ERR("null parameter\n");
+		SDEROT_DBG("null parameter\n");
 		return -EINVAL;
 	}
 
 	if (bus->bus_hdl < 1) {
-		SDEROT_ERR("invalid bus handle %d\n", bus->bus_hdl);
+		SDEROT_DBG("invalid bus handle %d\n", bus->bus_hdl);
 		return -EINVAL;
 	}
 
@@ -115,7 +115,7 @@ static int sde_rotator_bus_scale_set_quota(struct sde_rot_bus_data_type *bus,
 	}
 
 	if (!bus->bus_scale_pdata || !bus->bus_scale_pdata->num_usecases) {
-		SDEROT_ERR("invalid bus scale data\n");
+		SDEROT_DBG("invalid bus scale data\n");
 		return -EINVAL;
 	}
 
@@ -134,7 +134,7 @@ static int sde_rotator_bus_scale_set_quota(struct sde_rot_bus_data_type *bus,
 
 		total_axi_port_cnt = bw_table->usecase[new_uc_idx].num_paths;
 		if (total_axi_port_cnt == 0) {
-			SDEROT_ERR("Number of bw paths is 0\n");
+			SDEROT_DBG("Number of bw paths is 0\n");
 			return -ENODEV;
 		}
 		do_div(port_quota, total_axi_port_cnt);
@@ -235,7 +235,7 @@ static unsigned long sde_rotator_clk_rate_calc(
 static struct clk *sde_rotator_get_clk(struct sde_rot_mgr *mgr, u32 clk_idx)
 {
 	if (clk_idx >= mgr->num_rot_clk) {
-		SDEROT_ERR("Invalid clk index:%u", clk_idx);
+		SDEROT_DBG("Invalid clk index:%u", clk_idx);
 		return NULL;
 	}
 
@@ -252,17 +252,17 @@ static void sde_rotator_set_clk_rate(struct sde_rot_mgr *mgr,
 	if (clk) {
 		clk_rate = clk_round_rate(clk, rate);
 		if (IS_ERR_VALUE(clk_rate)) {
-			SDEROT_ERR("unable to round rate err=%ld\n", clk_rate);
+			SDEROT_DBG("unable to round rate err=%ld\n", clk_rate);
 		} else {
 			ret = clk_set_rate(clk, clk_rate);
 			if (IS_ERR_VALUE(ret))
-				SDEROT_ERR("clk_set_rate failed, err:%d\n",
+				SDEROT_DBG("clk_set_rate failed, err:%d\n",
 						ret);
 			else
 				SDEROT_DBG("rotator clk rate=%lu\n", clk_rate);
 		}
 	} else {
-		SDEROT_ERR("rotator clk not setup properly\n");
+		SDEROT_DBG("rotator clk not setup properly\n");
 	}
 }
 
@@ -292,7 +292,7 @@ static void sde_rotator_footswitch_ctrl(struct sde_rot_mgr *mgr, bool on)
 	int ret;
 
 	if (WARN_ON(mgr->regulator_enable == on)) {
-		SDEROT_ERR("Regulators already in selected mode on=%d\n", on);
+		SDEROT_DBG("Regulators already in selected mode on=%d\n", on);
 		return;
 	}
 
@@ -325,7 +325,7 @@ static int sde_rotator_enable_clk(struct sde_rot_mgr *mgr, int clk_idx)
 	if (clk) {
 		ret = clk_prepare_enable(clk);
 		if (ret)
-			SDEROT_ERR("enable failed clk_idx %d\n", clk_idx);
+			SDEROT_DBG("enable failed clk_idx %d\n", clk_idx);
 	}
 
 	return ret;
@@ -355,7 +355,7 @@ int sde_rotator_clk_ctrl(struct sde_rot_mgr *mgr, int enable)
 			if (mgr->rot_enable_clk_cnt == 0)
 				changed++;
 		} else {
-			SDEROT_ERR("Can not be turned off\n");
+			SDEROT_DBG("Can not be turned off\n");
 		}
 	}
 
@@ -516,7 +516,7 @@ static int sde_rotator_import_buffer(struct sde_layer_buffer *buffer,
 		dir = DMA_FROM_DEVICE;
 
 	if (buffer->plane_count > SDE_ROT_MAX_PLANES) {
-		SDEROT_ERR("buffer plane_count exceeds MAX_PLANE limit:%d\n",
+		SDEROT_DBG("buffer plane_count exceeds MAX_PLANE limit:%d\n",
 				buffer->plane_count);
 		return -EINVAL;
 	}
@@ -568,7 +568,7 @@ static int _sde_rotator_secure_session_ctrl(bool enable)
 					MEM_PROTECT_SD_CTRL_SWITCH), &desc);
 			resp = desc.ret[0];
 			if (ret) {
-				SDEROT_ERR("scm_call(1) ret=%d, resp=%x\n",
+				SDEROT_DBG("scm_call(1) ret=%d, resp=%x\n",
 					ret, resp);
 				/* failure, attach smmu */
 				mdata->sec_cam_en = 0;
@@ -622,7 +622,7 @@ static int sde_rotator_secure_session_ctrl(bool enable)
 		mdata->callback_request) {
 		ret = mdata->wait_for_transition(mdata->sec_cam_en, enable);
 		if (ret < 0) {
-			SDEROT_ERR("failed Secure wait for transition %d\n",
+			SDEROT_DBG("failed Secure wait for transition %d\n",
 				   ret);
 			ret = -EPERM;
 		} else {
@@ -638,7 +638,7 @@ static int sde_rotator_secure_session_ctrl(bool enable)
 	}
 
 	if (ret)
-		SDEROT_ERR("failed %d sde_rotator_secure_session %d\n",
+		SDEROT_DBG("failed %d sde_rotator_secure_session %d\n",
 			   ret, mdata->callback_request);
 
 	return ret;
@@ -667,7 +667,7 @@ static int sde_rotator_map_and_check_data(struct sde_rot_entry *entry)
 			true : false;
 	ret = sde_rotator_secure_session_ctrl(secure);
 	if (ret) {
-		SDEROT_ERR("failed secure session enabling/disabling %d\n",
+		SDEROT_DBG("failed secure session enabling/disabling %d\n",
 			ret);
 		goto end;
 	}
@@ -675,19 +675,19 @@ static int sde_rotator_map_and_check_data(struct sde_rot_entry *entry)
 	/* if error during map, the caller will release the data */
 	ret = sde_mdp_data_map(&entry->src_buf, true, DMA_TO_DEVICE);
 	if (ret) {
-		SDEROT_ERR("source buffer mapping failed ret:%d\n", ret);
+		SDEROT_DBG("source buffer mapping failed ret:%d\n", ret);
 		goto end;
 	}
 
 	ret = sde_mdp_data_map(&entry->dst_buf, true, DMA_FROM_DEVICE);
 	if (ret) {
-		SDEROT_ERR("destination buffer mapping failed ret:%d\n", ret);
+		SDEROT_DBG("destination buffer mapping failed ret:%d\n", ret);
 		goto end;
 	}
 
 	fmt = sde_get_format_params(input->format);
 	if (!fmt) {
-		SDEROT_ERR("invalid input format:%d\n", input->format);
+		SDEROT_DBG("invalid input format:%d\n", input->format);
 		ret = -EINVAL;
 		goto end;
 	}
@@ -695,19 +695,19 @@ static int sde_rotator_map_and_check_data(struct sde_rot_entry *entry)
 	ret = sde_mdp_get_plane_sizes(
 			fmt, input->width, input->height, &ps, 0, rotation);
 	if (ret) {
-		SDEROT_ERR("fail to get input plane size ret=%d\n", ret);
+		SDEROT_DBG("fail to get input plane size ret=%d\n", ret);
 		goto end;
 	}
 
 	ret = sde_mdp_data_check(&entry->src_buf, &ps, fmt);
 	if (ret) {
-		SDEROT_ERR("fail to check input data ret=%d\n", ret);
+		SDEROT_DBG("fail to check input data ret=%d\n", ret);
 		goto end;
 	}
 
 	fmt = sde_get_format_params(output->format);
 	if (!fmt) {
-		SDEROT_ERR("invalid output format:%d\n", output->format);
+		SDEROT_DBG("invalid output format:%d\n", output->format);
 		ret = -EINVAL;
 		goto end;
 	}
@@ -715,13 +715,13 @@ static int sde_rotator_map_and_check_data(struct sde_rot_entry *entry)
 	ret = sde_mdp_get_plane_sizes(
 			fmt, output->width, output->height, &ps, 0, rotation);
 	if (ret) {
-		SDEROT_ERR("fail to get output plane size ret=%d\n", ret);
+		SDEROT_DBG("fail to get output plane size ret=%d\n", ret);
 		goto end;
 	}
 
 	ret = sde_mdp_data_check(&entry->dst_buf, &ps, fmt);
 	if (ret) {
-		SDEROT_ERR("fail to check output data ret=%d\n", ret);
+		SDEROT_DBG("fail to check output data ret=%d\n", ret);
 		goto end;
 	}
 
@@ -789,7 +789,7 @@ static int sde_rotator_import_data(struct sde_rot_mgr *mgr,
 	ret = sde_rotator_import_buffer(input, &entry->src_buf, flag,
 				&mgr->pdev->dev, true);
 	if (ret) {
-		SDEROT_ERR("fail to import input buffer ret=%d\n", ret);
+		SDEROT_DBG("fail to import input buffer ret=%d\n", ret);
 		return ret;
 	}
 
@@ -800,7 +800,7 @@ static int sde_rotator_import_data(struct sde_rot_mgr *mgr,
 	ret = sde_rotator_import_buffer(output, &entry->dst_buf, flag,
 				&mgr->pdev->dev, false);
 	if (ret) {
-		SDEROT_ERR("fail to import output buffer ret=%d\n", ret);
+		SDEROT_DBG("fail to import output buffer ret=%d\n", ret);
 		return ret;
 	}
 
@@ -896,7 +896,7 @@ static struct sde_rot_hw_resource *sde_rotator_get_hw_resource(
 	int ret;
 
 	if (!queue || !entry || !queue->hw) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return NULL;
 	}
 
@@ -911,7 +911,7 @@ static struct sde_rot_hw_resource *sde_rotator_get_hw_resource(
 			msecs_to_jiffies(mgr->hwacquire_timeout));
 		sde_rot_mgr_lock(mgr);
 		if (!ret) {
-			SDEROT_ERR(
+			SDEROT_DBG(
 				"timeout waiting for hw resource, a:%d p:%d\n",
 				atomic_read(&hw->num_active),
 				hw->pending_count);
@@ -946,7 +946,7 @@ static void sde_rotator_put_hw_resource(struct sde_rot_queue *queue,
 	int i;
 
 	if (!queue || !entry || !hw) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return;
 	}
 
@@ -954,7 +954,7 @@ static void sde_rotator_put_hw_resource(struct sde_rot_queue *queue,
 
 	BUG_ON(atomic_read(&hw->num_active) < 1);
 	if (!atomic_add_unless(&hw->num_active, -1, 0))
-		SDEROT_ERR("underflow active=%d pending=%d s:%d.%d\n",
+		SDEROT_DBG("underflow active=%d pending=%d s:%d.%d\n",
 			atomic_read(&hw->num_active), hw->pending_count,
 			entry->item.session_id, entry->item.sequence_id);
 	/*
@@ -1008,7 +1008,7 @@ static int sde_rotator_init_queue(struct sde_rot_mgr *mgr)
 		ret = sched_setscheduler(mgr->commitq[i].rot_thread,
 			SCHED_FIFO, &param);
 		if (ret) {
-			SDEROT_ERR(
+			SDEROT_DBG(
 				"failed to set kthread priority for commitq %d\n",
 				ret);
 			break;
@@ -1039,7 +1039,7 @@ static int sde_rotator_init_queue(struct sde_rot_mgr *mgr)
 		ret = sched_setscheduler(mgr->doneq[i].rot_thread,
 			SCHED_FIFO, &param);
 		if (ret) {
-			SDEROT_ERR(
+			SDEROT_DBG(
 				"failed to set kthread priority for doneq %d\n",
 				ret);
 			break;
@@ -1113,7 +1113,7 @@ static int sde_rotator_assign_queue(struct sde_rot_mgr *mgr,
 	if (!queue->hw) {
 		hw = mgr->ops_hw_alloc(mgr, pipe_idx, wb_idx);
 		if (IS_ERR_OR_NULL(hw)) {
-			SDEROT_ERR("fail to allocate hw\n");
+			SDEROT_DBG("fail to allocate hw\n");
 			ret = PTR_ERR(hw);
 			if (!ret)
 				ret = -EINVAL;
@@ -1129,7 +1129,7 @@ static int sde_rotator_assign_queue(struct sde_rot_mgr *mgr,
 
 	perf = sde_rotator_find_session(private, item->session_id);
 	if (!perf) {
-		SDEROT_ERR(
+		SDEROT_DBG(
 			"Could not find session based on rotation work item\n");
 		return -EINVAL;
 	}
@@ -1153,7 +1153,7 @@ static void sde_rotator_unassign_queue(struct sde_rot_mgr *mgr,
 	entry->doneq = NULL;
 
 	if (!queue->hw) {
-		SDEROT_ERR("entry assigned a queue with no hw\n");
+		SDEROT_DBG("entry assigned a queue with no hw\n");
 		return;
 	}
 
@@ -1174,7 +1174,7 @@ void sde_rotator_queue_request(struct sde_rot_mgr *mgr,
 	int i;
 
 	if (!mgr || !private || !req) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return;
 	}
 
@@ -1246,12 +1246,12 @@ static int sde_rotator_calc_perf(struct sde_rot_mgr *mgr,
 
 	in_fmt = sde_get_format_params(config->input.format);
 	if (!in_fmt) {
-		SDEROT_ERR("invalid input format %d\n", config->input.format);
+		SDEROT_DBG("invalid input format %d\n", config->input.format);
 		return -EINVAL;
 	}
 	out_fmt = sde_get_format_params(config->output.format);
 	if (!out_fmt) {
-		SDEROT_ERR("invalid output format %d\n", config->output.format);
+		SDEROT_DBG("invalid output format %d\n", config->output.format);
 		return -EINVAL;
 	}
 
@@ -1367,7 +1367,7 @@ static void sde_rotator_release_from_work_distribution(
 		entry->work_assigned = false;
 		if (free_perf) {
 			if (mgr->pending_close_bw_vote < entry->perf->bw) {
-				SDEROT_ERR(
+				SDEROT_DBG(
 					"close bw vote underflow %llu / %llu\n",
 						mgr->pending_close_bw_vote,
 						entry->perf->bw);
@@ -1417,7 +1417,7 @@ static void sde_rotator_commit_handler(struct kthread_work *work)
 	request = entry->request;
 
 	if (!request || !entry->private || !entry->private->mgr) {
-		SDEROT_ERR("fatal error, null request/context/device\n");
+		SDEROT_DBG("fatal error, null request/context/device\n");
 		return;
 	}
 
@@ -1452,7 +1452,7 @@ static void sde_rotator_commit_handler(struct kthread_work *work)
 
 	hw = sde_rotator_get_hw_resource(entry->commitq, entry);
 	if (!hw) {
-		SDEROT_ERR("no hw for the queue\n");
+		SDEROT_DBG("no hw for the queue\n");
 		goto get_hw_res_err;
 	}
 
@@ -1474,26 +1474,26 @@ static void sde_rotator_commit_handler(struct kthread_work *work)
 	ATRACE_INT("sde_smmu_ctrl", 0);
 	ret = sde_smmu_ctrl(1);
 	if (IS_ERR_VALUE(ret)) {
-		SDEROT_ERR("IOMMU attach failed\n");
+		SDEROT_DBG("IOMMU attach failed\n");
 		goto smmu_error;
 	}
 	ATRACE_INT("sde_smmu_ctrl", 1);
 
 	ret = sde_rotator_map_and_check_data(entry);
 	if (ret) {
-		SDEROT_ERR("fail to prepare input/output data %d\n", ret);
+		SDEROT_DBG("fail to prepare input/output data %d\n", ret);
 		goto error;
 	}
 
 	ret = mgr->ops_config_hw(hw, entry);
 	if (ret) {
-		SDEROT_ERR("fail to configure hw resource %d\n", ret);
+		SDEROT_DBG("fail to configure hw resource %d\n", ret);
 		goto error;
 	}
 
 	ret = mgr->ops_kickoff_entry(hw, entry);
 	if (ret) {
-		SDEROT_ERR("fail to do kickoff %d\n", ret);
+		SDEROT_DBG("fail to do kickoff %d\n", ret);
 		goto error;
 	}
 
@@ -1539,7 +1539,7 @@ static void sde_rotator_done_handler(struct kthread_work *work)
 	request = entry->request;
 
 	if (!request || !entry->private || !entry->private->mgr) {
-		SDEROT_ERR("fatal error, null request/context/device\n");
+		SDEROT_DBG("fatal error, null request/context/device\n");
 		return;
 	}
 
@@ -1559,7 +1559,7 @@ static void sde_rotator_done_handler(struct kthread_work *work)
 	SDEROT_EVTLOG(entry->item.session_id, 0);
 	ret = mgr->ops_wait_for_entry(hw, entry);
 	if (ret) {
-		SDEROT_ERR("fail to wait for completion %d\n", ret);
+		SDEROT_DBG("fail to wait for completion %d\n", ret);
 		atomic_inc(&request->failed_count);
 	}
 	SDEROT_EVTLOG(entry->item.session_id, 1);
@@ -1604,19 +1604,19 @@ static bool sde_rotator_verify_format(struct sde_rot_mgr *mgr,
 	u8 out_v_subsample, out_h_subsample;
 
 	if (!sde_rotator_is_valid_pixfmt(mgr, in_fmt->format, true)) {
-		SDEROT_ERR("Invalid input format %x\n", in_fmt->format);
+		SDEROT_DBG("Invalid input format %x\n", in_fmt->format);
 		goto verify_error;
 	}
 
 	if (!sde_rotator_is_valid_pixfmt(mgr, out_fmt->format, false)) {
-		SDEROT_ERR("Invalid output format %x\n", out_fmt->format);
+		SDEROT_DBG("Invalid output format %x\n", out_fmt->format);
 		goto verify_error;
 	}
 
 	if ((in_fmt->is_yuv != out_fmt->is_yuv) ||
 		(in_fmt->pixel_mode != out_fmt->pixel_mode) ||
 		(in_fmt->unpack_tight != out_fmt->unpack_tight)) {
-		SDEROT_ERR("Rotator does not support CSC\n");
+		SDEROT_DBG("Rotator does not support CSC\n");
 		goto verify_error;
 	}
 
@@ -1627,7 +1627,7 @@ static bool sde_rotator_verify_format(struct sde_rot_mgr *mgr,
 			(in_fmt->bits[C2_R_Cr] != out_fmt->bits[C2_R_Cr]) ||
 			(in_fmt->bits[C0_G_Y] != out_fmt->bits[C0_G_Y]) ||
 			(in_fmt->bits[C1_B_Cb] != out_fmt->bits[C1_B_Cb])) {
-			SDEROT_ERR("Bit format does not match\n");
+			SDEROT_DBG("Bit format does not match\n");
 			goto verify_error;
 		}
 	}
@@ -1641,12 +1641,12 @@ static bool sde_rotator_verify_format(struct sde_rot_mgr *mgr,
 
 		if ((in_v_subsample != out_h_subsample) ||
 				(in_h_subsample != out_v_subsample)) {
-			SDEROT_ERR("Rotation has invalid subsampling\n");
+			SDEROT_DBG("Rotation has invalid subsampling\n");
 			goto verify_error;
 		}
 	} else {
 		if (in_fmt->chroma_sample != out_fmt->chroma_sample) {
-			SDEROT_ERR("Format subsampling mismatch\n");
+			SDEROT_DBG("Format subsampling mismatch\n");
 			goto verify_error;
 		}
 	}
@@ -1654,7 +1654,7 @@ static bool sde_rotator_verify_format(struct sde_rot_mgr *mgr,
 	return true;
 
 verify_error:
-	SDEROT_ERR("in_fmt=0x%x, out_fmt=0x%x\n",
+	SDEROT_DBG("in_fmt=0x%x, out_fmt=0x%x\n",
 			in_fmt->format, out_fmt->format);
 	return false;
 }
@@ -1669,7 +1669,7 @@ static struct sde_mdp_format_params *__verify_input_config(
 	int verify_input_only;
 
 	if (!mgr || !config) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return NULL;
 	}
 
@@ -1680,7 +1680,7 @@ static struct sde_mdp_format_params *__verify_input_config(
 	in_fmt = sde_get_format_params(input);
 	if (!in_fmt) {
 		if (!verify_input_only)
-			SDEROT_ERR("Unrecognized input format:0x%x\n", input);
+			SDEROT_DBG("Unrecognized input format:0x%x\n", input);
 		return NULL;
 	}
 
@@ -1691,7 +1691,7 @@ static struct sde_mdp_format_params *__verify_input_config(
 	if ((config->input.height % in_v_subsample) ||
 			(config->input.width % in_h_subsample)) {
 		if (!verify_input_only)
-			SDEROT_ERR(
+			SDEROT_DBG(
 				"In ROI, subsample mismatch, w=%d, h=%d, vss%d, hss%d\n",
 					config->input.width,
 					config->input.height,
@@ -1712,7 +1712,7 @@ static struct sde_mdp_format_params *__verify_output_config(
 	int verify_input_only;
 
 	if (!mgr || !config) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return NULL;
 	}
 
@@ -1723,7 +1723,7 @@ static struct sde_mdp_format_params *__verify_output_config(
 	out_fmt = sde_get_format_params(output);
 	if (!out_fmt) {
 		if (!verify_input_only)
-			SDEROT_ERR("Unrecognized output format:0x%x\n", output);
+			SDEROT_DBG("Unrecognized output format:0x%x\n", output);
 		return NULL;
 	}
 
@@ -1734,7 +1734,7 @@ static struct sde_mdp_format_params *__verify_output_config(
 	if ((config->output.height % out_v_subsample) ||
 			(config->output.width % out_h_subsample)) {
 		if (!verify_input_only)
-			SDEROT_ERR(
+			SDEROT_DBG(
 				"Out ROI, subsample mismatch, w=%d, h=%d, vss%d, hss%d\n",
 					config->output.width,
 					config->output.height,
@@ -1776,7 +1776,7 @@ int sde_rotator_verify_config_all(struct sde_rot_mgr *mgr,
 	bool rotation;
 
 	if (!mgr || !config) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -EINVAL;
 	}
 
@@ -1791,7 +1791,7 @@ int sde_rotator_verify_config_all(struct sde_rot_mgr *mgr,
 		return -EINVAL;
 
 	if (!sde_rotator_verify_format(mgr, in_fmt, out_fmt, rotation)) {
-		SDEROT_ERR(
+		SDEROT_DBG(
 			"Rot format pairing invalid, in_fmt:0x%x, out_fmt:0x%x\n",
 					config->input.format,
 					config->output.format);
@@ -1931,13 +1931,13 @@ static int sde_rotator_add_request(struct sde_rot_mgr *mgr,
 
 		ret = sde_rotator_validate_entry(mgr, private, entry);
 		if (ret) {
-			SDEROT_ERR("fail to validate the entry\n");
+			SDEROT_DBG("fail to validate the entry\n");
 			return ret;
 		}
 
 		ret = sde_rotator_import_data(mgr, entry);
 		if (ret) {
-			SDEROT_ERR("fail to import the data\n");
+			SDEROT_DBG("fail to import the data\n");
 			return ret;
 		}
 
@@ -1946,7 +1946,7 @@ static int sde_rotator_add_request(struct sde_rot_mgr *mgr,
 
 		ret = sde_rotator_assign_queue(mgr, entry, private);
 		if (ret) {
-			SDEROT_ERR("fail to assign queue to entry\n");
+			SDEROT_DBG("fail to assign queue to entry\n");
 			return ret;
 		}
 
@@ -1977,7 +1977,7 @@ void sde_rotator_remove_request(struct sde_rot_mgr *mgr,
 	int i;
 
 	if (!mgr || !private || !req) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return;
 	}
 
@@ -2083,7 +2083,7 @@ int sde_rotator_validate_request(struct sde_rot_mgr *mgr,
 	struct sde_rot_entry *entry;
 
 	if (!mgr || !private || !req) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -EINVAL;
 	}
 
@@ -2145,19 +2145,19 @@ static int sde_rotator_open_session(struct sde_rot_mgr *mgr,
 
 	ret = sde_rotator_resource_ctrl(mgr, true);
 	if (ret < 0) {
-		SDEROT_ERR("Failed to acquire rotator resources\n");
+		SDEROT_DBG("Failed to acquire rotator resources\n");
 		goto resource_err;
 	}
 
 	ret = sde_rotator_update_clk(mgr);
 	if (ret) {
-		SDEROT_ERR("failed to update clk %d\n", ret);
+		SDEROT_DBG("failed to update clk %d\n", ret);
 		goto update_clk_err;
 	}
 
 	ret = sde_rotator_clk_ctrl(mgr, true);
 	if (ret) {
-		SDEROT_ERR("failed to enable clk %d\n", ret);
+		SDEROT_DBG("failed to enable clk %d\n", ret);
 		goto enable_clk_err;
 	}
 
@@ -2189,7 +2189,7 @@ static int sde_rotator_close_session(struct sde_rot_mgr *mgr,
 	id = (u32)session_id;
 	perf = __sde_rotator_find_session(private, id);
 	if (!perf) {
-		SDEROT_ERR("Trying to close session that does not exist\n");
+		SDEROT_DBG("Trying to close session that does not exist\n");
 		return -EINVAL;
 	}
 
@@ -2223,13 +2223,13 @@ static int sde_rotator_config_session(struct sde_rot_mgr *mgr,
 
 	ret = sde_rotator_verify_config_all(mgr, config);
 	if (ret) {
-		SDEROT_ERR("Rotator verify format failed\n");
+		SDEROT_DBG("Rotator verify format failed\n");
 		return ret;
 	}
 
 	perf = sde_rotator_find_session(private, config->session_id);
 	if (!perf) {
-		SDEROT_ERR("No session with id=%u could be found\n",
+		SDEROT_DBG("No session with id=%u could be found\n",
 			config->session_id);
 		return -EINVAL;
 	}
@@ -2238,19 +2238,19 @@ static int sde_rotator_config_session(struct sde_rot_mgr *mgr,
 	ret = sde_rotator_calc_perf(mgr, perf);
 
 	if (ret) {
-		SDEROT_ERR("error in configuring the session %d\n", ret);
+		SDEROT_DBG("error in configuring the session %d\n", ret);
 		goto done;
 	}
 
 	ret = sde_rotator_update_perf(mgr);
 	if (ret) {
-		SDEROT_ERR("error in updating perf: %d\n", ret);
+		SDEROT_DBG("error in updating perf: %d\n", ret);
 		goto done;
 	}
 
 	ret = sde_rotator_update_clk(mgr);
 	if (ret) {
-		SDEROT_ERR("error in updating the rotator clk: %d\n", ret);
+		SDEROT_DBG("error in updating the rotator clk: %d\n", ret);
 		goto done;
 	}
 
@@ -2274,7 +2274,7 @@ struct sde_rot_entry_container *sde_rotator_req_init(
 	int size, i;
 
 	if (!mgr || !private || !items) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -2309,7 +2309,7 @@ int sde_rotator_handle_request_common(struct sde_rot_mgr *mgr,
 	int ret;
 
 	if (!mgr || !private || !req || !items) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -EINVAL;
 	}
 
@@ -2317,7 +2317,7 @@ int sde_rotator_handle_request_common(struct sde_rot_mgr *mgr,
 
 	ret = sde_rotator_add_request(mgr, private, req);
 	if (ret) {
-		SDEROT_ERR("fail to add rotation request\n");
+		SDEROT_DBG("fail to add rotation request\n");
 		sde_rotator_remove_request(mgr, private, req);
 		return ret;
 	}
@@ -2373,7 +2373,7 @@ static int sde_rotator_close(struct sde_rot_mgr *mgr,
 		return -ENODEV;
 
 	if (!(sde_rotator_file_priv_allowed(mgr, private))) {
-		SDEROT_ERR(
+		SDEROT_DBG(
 			"Calling close with unrecognized rot_file_private\n");
 		return -EINVAL;
 	}
@@ -2472,7 +2472,7 @@ static int sde_rotator_parse_dt_bus(struct sde_rot_mgr *mgr,
 		ret = PTR_ERR(mgr->data_bus.bus_scale_pdata);
 		if (!ret) {
 			ret = -EINVAL;
-			SDEROT_ERR("msm_bus_cl_get_pdata failed. ret=%d\n",
+			SDEROT_DBG("msm_bus_cl_get_pdata failed. ret=%d\n",
 					ret);
 			mgr->data_bus.bus_scale_pdata = NULL;
 		}
@@ -2503,7 +2503,7 @@ static int sde_rotator_parse_dt(struct sde_rot_mgr *mgr,
 		"qcom,mdss-wb-count", &data);
 	if (!ret) {
 		if (data > ROT_MAX_HW_BLOCKS) {
-			SDEROT_ERR(
+			SDEROT_DBG(
 				"Err, num of wb block (%d) larger than sw max %d\n",
 				data, ROT_MAX_HW_BLOCKS);
 			return -EINVAL;
@@ -2514,7 +2514,7 @@ static int sde_rotator_parse_dt(struct sde_rot_mgr *mgr,
 
 	ret = sde_rotator_parse_dt_bus(mgr, dev);
 	if (ret)
-		SDEROT_ERR("Failed to parse bus data\n");
+		SDEROT_DBG("Failed to parse bus data\n");
 
 	return ret;
 }
@@ -2523,7 +2523,7 @@ static void sde_rotator_put_dt_vreg_data(struct device *dev,
 	struct sde_module_power *mp)
 {
 	if (!mp) {
-		SDEROT_ERR("%s: invalid input\n", __func__);
+		SDEROT_DBG("%s: invalid input\n", __func__);
 		return;
 	}
 
@@ -2545,7 +2545,7 @@ static int sde_rotator_get_dt_vreg_data(struct device *dev,
 	int rc;
 
 	if (!dev || !mp) {
-		SDEROT_ERR("%s: invalid input\n", __func__);
+		SDEROT_DBG("%s: invalid input\n", __func__);
 		return -EINVAL;
 	}
 
@@ -2553,7 +2553,7 @@ static int sde_rotator_get_dt_vreg_data(struct device *dev,
 
 	dt_vreg_total = of_property_count_strings(of_node, "qcom,supply-names");
 	if (dt_vreg_total < 0) {
-		SDEROT_ERR("%s: vreg not found. rc=%d\n", __func__,
+		SDEROT_DBG("%s: vreg not found. rc=%d\n", __func__,
 			dt_vreg_total);
 		return 0;
 	}
@@ -2568,7 +2568,7 @@ static int sde_rotator_get_dt_vreg_data(struct device *dev,
 		rc = of_property_read_string_index(of_node,
 			"qcom,supply-names", i, &st);
 		if (rc) {
-			SDEROT_ERR("%s: error reading name. i=%d, rc=%d\n",
+			SDEROT_DBG("%s: error reading name. i=%d, rc=%d\n",
 				__func__, i, rc);
 			goto error;
 		}
@@ -2611,7 +2611,7 @@ static void sde_rotator_bus_scale_unregister(struct sde_rot_mgr *mgr)
 static int sde_rotator_bus_scale_register(struct sde_rot_mgr *mgr)
 {
 	if (!mgr->data_bus.bus_scale_pdata) {
-		SDEROT_ERR("Scale table is NULL\n");
+		SDEROT_DBG("Scale table is NULL\n");
 		return -EINVAL;
 	}
 
@@ -2619,7 +2619,7 @@ static int sde_rotator_bus_scale_register(struct sde_rot_mgr *mgr)
 		msm_bus_scale_register_client(
 		mgr->data_bus.bus_scale_pdata);
 	if (!mgr->data_bus.bus_hdl) {
-		SDEROT_ERR("bus_client register failed\n");
+		SDEROT_DBG("bus_client register failed\n");
 		return -EINVAL;
 	}
 	SDEROT_DBG("registered bus_hdl=%x\n", mgr->data_bus.bus_hdl);
@@ -2629,7 +2629,7 @@ static int sde_rotator_bus_scale_register(struct sde_rot_mgr *mgr)
 			msm_bus_scale_register_client(
 			mgr->reg_bus.bus_scale_pdata);
 		if (!mgr->reg_bus.bus_hdl) {
-			SDEROT_ERR("register bus_client register failed\n");
+			SDEROT_DBG("register bus_client register failed\n");
 			sde_rotator_bus_scale_unregister(mgr);
 		} else {
 			SDEROT_DBG("registered register bus_hdl=%x\n",
@@ -2646,13 +2646,13 @@ static inline int sde_rotator_search_dt_clk(struct platform_device *pdev,
 	struct clk *tmp;
 
 	if (clk_idx >= SDE_ROTATOR_CLK_MAX) {
-		SDEROT_ERR("invalid clk index %d\n", clk_idx);
+		SDEROT_DBG("invalid clk index %d\n", clk_idx);
 		return -EINVAL;
 	}
 
 	tmp = devm_clk_get(&pdev->dev, clk_name);
 	if (IS_ERR(tmp)) {
-		SDEROT_ERR("unable to get clk: %s\n", clk_name);
+		SDEROT_DBG("unable to get clk: %s\n", clk_name);
 		return PTR_ERR(tmp);
 	}
 
@@ -2672,7 +2672,7 @@ static int sde_rotator_parse_dt_clk(struct platform_device *pdev,
 	num_clk = of_property_count_strings(pdev->dev.of_node,
 			"clock-names");
 	if ((num_clk <= 0) || (num_clk > SDE_ROTATOR_CLK_MAX)) {
-		SDEROT_ERR("Number of clocks are out of range: %d\n", num_clk);
+		SDEROT_DBG("Number of clocks are out of range: %d\n", num_clk);
 		goto clk_err;
 	}
 
@@ -2708,7 +2708,7 @@ static int sde_rotator_register_clk(struct platform_device *pdev,
 
 	ret = sde_rotator_parse_dt_clk(pdev, mgr);
 	if (ret) {
-		SDEROT_ERR("unable to parse clocks\n");
+		SDEROT_DBG("unable to parse clocks\n");
 		return -EINVAL;
 	}
 
@@ -2762,7 +2762,7 @@ int sde_rotator_core_init(struct sde_rot_mgr **pmgr,
 	int ret;
 
 	if (!pmgr || !pdev) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -EINVAL;
 	}
 
@@ -2790,19 +2790,19 @@ int sde_rotator_core_init(struct sde_rot_mgr **pmgr,
 	ret = sysfs_create_group(&mgr->device->kobj,
 			&sde_rotator_fs_attr_group);
 	if (ret) {
-		SDEROT_ERR("unable to register rotator sysfs nodes\n");
+		SDEROT_DBG("unable to register rotator sysfs nodes\n");
 		goto error_create_sysfs;
 	}
 
 	ret = sde_rotator_parse_dt(mgr, pdev);
 	if (ret) {
-		SDEROT_ERR("fail to parse the dt\n");
+		SDEROT_DBG("fail to parse the dt\n");
 		goto error_parse_dt;
 	}
 
 	ret = sde_rotator_res_init(pdev, mgr);
 	if (ret) {
-		SDEROT_ERR("res_init failed %d\n", ret);
+		SDEROT_DBG("res_init failed %d\n", ret);
 		goto error_res_init;
 	}
 
@@ -2811,7 +2811,7 @@ int sde_rotator_core_init(struct sde_rot_mgr **pmgr,
 	pm_runtime_set_suspended(&pdev->dev);
 	pm_runtime_enable(&pdev->dev);
 	if (!pm_runtime_enabled(&pdev->dev)) {
-		SDEROT_ERR("fail to enable power, force on\n");
+		SDEROT_DBG("fail to enable power, force on\n");
 		sde_rotator_footswitch_ctrl(mgr, true);
 	}
 
@@ -2829,20 +2829,20 @@ int sde_rotator_core_init(struct sde_rot_mgr **pmgr,
 		mgr->ops_hw_init = sde_rotator_r3_init;
 	} else {
 		ret = -ENODEV;
-		SDEROT_ERR("unsupported sde version %x\n",
+		SDEROT_DBG("unsupported sde version %x\n",
 				mdata->mdss_version);
 		goto error_map_hw_ops;
 	}
 
 	ret = mgr->ops_hw_init(mgr);
 	if (ret) {
-		SDEROT_ERR("hw init failed %d\n", ret);
+		SDEROT_DBG("hw init failed %d\n", ret);
 		goto error_hw_init;
 	}
 
 	ret = sde_rotator_init_queue(mgr);
 	if (ret) {
-		SDEROT_ERR("fail to init queue\n");
+		SDEROT_DBG("fail to init queue\n");
 		goto error_init_queue;
 	}
 
@@ -2874,7 +2874,7 @@ void sde_rotator_core_destroy(struct sde_rot_mgr *mgr)
 	struct device *dev;
 
 	if (!mgr) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return;
 	}
 
@@ -2909,12 +2909,12 @@ int sde_rotator_runtime_suspend(struct device *dev)
 	mgr = sde_rot_mgr_from_device(dev);
 
 	if (!mgr) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -ENODEV;
 	}
 
 	if (mgr->rot_enable_clk_cnt) {
-		SDEROT_ERR("invalid runtime suspend request %d\n",
+		SDEROT_DBG("invalid runtime suspend request %d\n",
 				mgr->rot_enable_clk_cnt);
 		return -EBUSY;
 	}
@@ -2936,7 +2936,7 @@ int sde_rotator_runtime_resume(struct device *dev)
 	mgr = sde_rot_mgr_from_device(dev);
 
 	if (!mgr) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -ENODEV;
 	}
 
@@ -2957,7 +2957,7 @@ int sde_rotator_runtime_idle(struct device *dev)
 	mgr = sde_rot_mgr_from_device(dev);
 
 	if (!mgr) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -ENODEV;
 	}
 
@@ -2981,7 +2981,7 @@ int sde_rotator_pm_suspend(struct device *dev)
 	mgr = sde_rot_mgr_from_device(dev);
 
 	if (!mgr) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -ENODEV;
 	}
 
@@ -3007,7 +3007,7 @@ int sde_rotator_pm_resume(struct device *dev)
 	mgr = sde_rot_mgr_from_device(dev);
 
 	if (!mgr) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -ENODEV;
 	}
 
@@ -3038,7 +3038,7 @@ int sde_rotator_suspend(struct platform_device *dev, pm_message_t state)
 	mgr = sde_rot_mgr_from_pdevice(dev);
 
 	if (!mgr) {
-		SDEROT_ERR("null_parameters\n");
+		SDEROT_DBG("null_parameters\n");
 		return -ENODEV;
 	}
 
@@ -3057,7 +3057,7 @@ int sde_rotator_resume(struct platform_device *dev)
 	mgr = sde_rot_mgr_from_pdevice(dev);
 
 	if (!mgr) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -ENODEV;
 	}
 
@@ -3082,7 +3082,7 @@ int sde_rotator_session_open(struct sde_rot_mgr *mgr,
 	struct sde_rot_file_private *private;
 
 	if (!mgr || !pprivate || !queue) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -EINVAL;
 	}
 
@@ -3113,7 +3113,7 @@ void sde_rotator_session_close(struct sde_rot_mgr *mgr,
 	struct sde_rot_file_private *private, int session_id)
 {
 	if (!mgr || !private) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return;
 	}
 
@@ -3131,7 +3131,7 @@ int sde_rotator_session_config(struct sde_rot_mgr *mgr,
 	struct sde_rotation_config *config)
 {
 	if (!mgr || !private || !config) {
-		SDEROT_ERR("null parameters\n");
+		SDEROT_DBG("null parameters\n");
 		return -EINVAL;
 	}
 
