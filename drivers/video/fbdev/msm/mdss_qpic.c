@@ -435,24 +435,24 @@ static int qpic_send_pkt_bam(u32 cmd, u32 len, u8 *param)
 
 void qpic_dump_reg(void)
 {
-	pr_info("%s\n", __func__);
-	pr_info("QPIC_REG_QPIC_LCDC_CTRL = %x\n",
+	pr_debug("%s\n", __func__);
+	pr_debug("QPIC_REG_QPIC_LCDC_CTRL = %x\n",
 		QPIC_INP(QPIC_REG_QPIC_LCDC_CTRL));
-	pr_info("QPIC_REG_QPIC_LCDC_CMD_DATA_CYCLE_CNT = %x\n",
+	pr_debug("QPIC_REG_QPIC_LCDC_CMD_DATA_CYCLE_CNT = %x\n",
 		QPIC_INP(QPIC_REG_QPIC_LCDC_CMD_DATA_CYCLE_CNT));
-	pr_info("QPIC_REG_QPIC_LCDC_CFG0 = %x\n",
+	pr_debug("QPIC_REG_QPIC_LCDC_CFG0 = %x\n",
 		QPIC_INP(QPIC_REG_QPIC_LCDC_CFG0));
-	pr_info("QPIC_REG_QPIC_LCDC_CFG1 = %x\n",
+	pr_debug("QPIC_REG_QPIC_LCDC_CFG1 = %x\n",
 		QPIC_INP(QPIC_REG_QPIC_LCDC_CFG1));
-	pr_info("QPIC_REG_QPIC_LCDC_CFG2 = %x\n",
+	pr_debug("QPIC_REG_QPIC_LCDC_CFG2 = %x\n",
 		QPIC_INP(QPIC_REG_QPIC_LCDC_CFG2));
-	pr_info("QPIC_REG_QPIC_LCDC_IRQ_EN = %x\n",
+	pr_debug("QPIC_REG_QPIC_LCDC_IRQ_EN = %x\n",
 		QPIC_INP(QPIC_REG_QPIC_LCDC_IRQ_EN));
-	pr_info("QPIC_REG_QPIC_LCDC_IRQ_STTS = %x\n",
+	pr_debug("QPIC_REG_QPIC_LCDC_IRQ_STTS = %x\n",
 		QPIC_INP(QPIC_REG_QPIC_LCDC_IRQ_STTS));
-	pr_info("QPIC_REG_QPIC_LCDC_STTS = %x\n",
+	pr_debug("QPIC_REG_QPIC_LCDC_STTS = %x\n",
 		QPIC_INP(QPIC_REG_QPIC_LCDC_STTS));
-	pr_info("QPIC_REG_QPIC_LCDC_FIFO_SOF = %x\n",
+	pr_debug("QPIC_REG_QPIC_LCDC_FIFO_SOF = %x\n",
 		QPIC_INP(QPIC_REG_QPIC_LCDC_FIFO_SOF));
 }
 
@@ -617,7 +617,7 @@ int mdss_qpic_init(void)
 	u32 data;
 	mdss_qpic_reset();
 
-	pr_info("%s version=%x", __func__, QPIC_INP(QPIC_REG_LCDC_VERSION));
+	pr_debug("%s version=%x", __func__, QPIC_INP(QPIC_REG_LCDC_VERSION));
 	data = QPIC_INP(QPIC_REG_QPIC_LCDC_CTRL);
 	/* clear vsync wait , bam mode = 0*/
 	data &= ~(3 << 0);
@@ -745,7 +745,7 @@ static int mdss_qpic_probe(struct platform_device *pdev)
 		goto probe_done;
 	}
 	qpic_res->qpic_phys = res->start;
-	pr_info("MDSS QPIC HW Base phy_Address=0x%x virt=0x%x\n",
+	pr_debug("MDSS QPIC HW Base phy_Address=0x%x virt=0x%x\n",
 		(int) res->start,
 		(int) qpic_res->qpic_base);
 

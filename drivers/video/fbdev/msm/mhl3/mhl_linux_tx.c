@@ -5295,7 +5295,7 @@ int mhl_tx_init(struct mhl_drv_info const *drv_info, struct device *parent_dev)
 		mhl_class = class_create(THIS_MODULE, "mhl");
 		if (IS_ERR(mhl_class)) {
 			ret = PTR_ERR(mhl_class);
-			pr_info("class_create failed %d\n", ret);
+			pr_debug("class_create failed %d\n", ret);
 			goto hid_cleanup;
 		}
 
@@ -5307,7 +5307,7 @@ int mhl_tx_init(struct mhl_drv_info const *drv_info, struct device *parent_dev)
 			0, MHL_DRIVER_MINOR_MAX, MHL_DRIVER_NAME);
 
 		if (ret) {
-			pr_info("register_chrdev %s failed, error code: %d\n",
+			pr_debug("register_chrdev %s failed, error code: %d\n",
 				MHL_DRIVER_NAME, ret);
 			goto free_class;
 		}
@@ -5318,7 +5318,7 @@ int mhl_tx_init(struct mhl_drv_info const *drv_info, struct device *parent_dev)
 		    cdev_add(&dev_context->mhl_cdev, MINOR(dev_num),
 			     MHL_DRIVER_MINOR_MAX);
 		if (ret) {
-			pr_info("cdev_add %s failed %d\n", MHL_DRIVER_NAME,
+			pr_debug("cdev_add %s failed %d\n", MHL_DRIVER_NAME,
 				ret);
 			goto free_chrdev;
 		}
@@ -5328,7 +5328,7 @@ int mhl_tx_init(struct mhl_drv_info const *drv_info, struct device *parent_dev)
 		dev_num, dev_context, "%s", MHL_DEVICE_NAME);
 	if (IS_ERR(dev_context->mhl_dev)) {
 		ret = PTR_ERR(dev_context->mhl_dev);
-		pr_info("device_create failed %s %d\n", MHL_DEVICE_NAME, ret);
+		pr_debug("device_create failed %s %d\n", MHL_DEVICE_NAME, ret);
 		goto free_cdev;
 	}
 	status = sysfs_create_group(&dev_context->mhl_dev->kobj,

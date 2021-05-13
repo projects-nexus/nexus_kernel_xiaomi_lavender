@@ -2836,7 +2836,7 @@ static ssize_t mdss_mdp_store_max_limit_bw(struct device *dev,
 	u32 data = 0;
 
 	if (kstrtouint(buf, 0, &data)) {
-		pr_info("Not able scan to bw_mode_bitmap\n");
+		pr_debug("Not able scan to bw_mode_bitmap\n");
 	} else {
 		mdata->bw_mode_bitmap = data;
 		mdata->bw_limit_pending = true;
@@ -3183,7 +3183,7 @@ static int mdss_mdp_probe(struct platform_device *pdev)
 		mdss_res->mdp_irq_export[0] = MDSS_MDP_INTR_WB_0_DONE |
 						MDSS_MDP_INTR_WB_1_DONE;
 
-	pr_info("mdss version = 0x%x, bootloader display is %s, num %d, intf_sel=0x%08x\n",
+	pr_debug("mdss version = 0x%x, bootloader display is %s, num %d, intf_sel=0x%08x\n",
 		mdata->mdp_rev, num_of_display_on ? "on" : "off",
 		num_of_display_on, intf_sel);
 

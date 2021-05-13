@@ -966,7 +966,7 @@ static int mdss_dp_parse_gpio_params(struct platform_device *pdev,
 			"qcom,hpd-gpio", 0);
 
 	if (!gpio_is_valid(dp->hpd_gpio)) {
-		pr_info("%d,hpd gpio not specified\n",
+		pr_debug("%d,hpd gpio not specified\n",
 					__LINE__);
 	}
 
@@ -2255,7 +2255,7 @@ static int mdss_dp_process_hpd_high(struct mdss_dp_drv_pdata *dp)
 	if (mdss_dp_is_ds_bridge_sink_count_zero(dp)) {
 		if (mdss_dp_is_ds_bridge_no_local_edid(dp))
 			pr_debug("No local EDID present on DS branch device\n");
-		pr_info("no downstream devices, skip client notification\n");
+		pr_debug("no downstream devices, skip client notification\n");
 		goto end;
 	}
 
@@ -2288,7 +2288,7 @@ read_edid:
 notify:
 	if (ret) {
 		/* set failsafe parameters */
-		pr_info("falling back to failsafe mode\n");
+		pr_debug("falling back to failsafe mode\n");
 		mdss_dp_set_default_resolution(dp);
 		mdss_dp_set_default_link_parameters(dp);
 	}
@@ -2300,9 +2300,9 @@ notify:
 	 * and mainlink with the new settings.
 	 */
 	if (mdss_dp_is_phy_test_pattern_requested(dp)) {
-		pr_info("PHY_TEST_PATTERN requested by sink\n");
+		pr_debug("PHY_TEST_PATTERN requested by sink\n");
 		mdss_dp_process_phy_test_pattern_request(dp);
-		pr_info("skip client notification\n");
+		pr_debug("skip client notification\n");
 		goto end;
 	}
 
@@ -3268,7 +3268,7 @@ static int mdss_dp_device_register(struct mdss_dp_drv_pdata *dp_drv)
 		return ret;
 	}
 
-	pr_info("dp initialized\n");
+	pr_debug("dp initialized\n");
 
 	return 0;
 }
@@ -3652,7 +3652,7 @@ static void usbpd_disconnect_callback(struct usbpd_svid_handler *hdlr)
 	 * testing mode.
 	 */
 	if (mdss_dp_is_phy_test_pattern_requested(dp_drv)) {
-		pr_info("turning off DP controller for PHY testing\n");
+		pr_debug("turning off DP controller for PHY testing\n");
 		mdss_dp_mainlink_push_idle(&dp_drv->panel_data);
 		mdss_dp_off_hpd(dp_drv);
 	} else {
@@ -3782,7 +3782,7 @@ static int mdss_dp_process_link_status_update(struct mdss_dp_drv_pdata *dp)
 			mdss_dp_aux_clock_recovery_done(dp)))
 		return -EINVAL;
 
-	pr_info("channel_eq_done = %d, clock_recovery_done = %d\n",
+	pr_debug("channel_eq_done = %d, clock_recovery_done = %d\n",
 			mdss_dp_aux_channel_eq_done(dp),
 			mdss_dp_aux_clock_recovery_done(dp));
 
@@ -3809,7 +3809,7 @@ static int mdss_dp_process_link_training_request(struct mdss_dp_drv_pdata *dp)
 
 	mdss_dp_send_test_response(dp);
 
-	pr_info("%s link rate = 0x%x, lane count = 0x%x\n",
+	pr_debug("%s link rate = 0x%x, lane count = 0x%x\n",
 			mdss_dp_get_test_name(TEST_LINK_TRAINING),
 			dp->test_data.test_link_rate,
 			dp->test_data.test_lane_count);
@@ -3843,7 +3843,7 @@ static int mdss_dp_process_phy_test_pattern_request(
 
 	if (!mdss_dp_aux_is_link_rate_valid(test_link_rate) ||
 		!mdss_dp_aux_is_lane_count_valid(test_lane_count)) {
-		pr_info("Invalid params: link rate = 0x%x, lane count = 0x%x\n",
+		pr_debug("Invalid params: link rate = 0x%x, lane count = 0x%x\n",
 				test_link_rate, test_lane_count);
 		return -EINVAL;
 	}
@@ -3851,7 +3851,7 @@ static int mdss_dp_process_phy_test_pattern_request(
 	pr_debug("start\n");
 
 	if (dp->power_on) {
-		pr_info("turning off DP controller for PHY testing\n");
+		pr_debug("turning off DP controller for PHY testing\n");
 		mdss_dp_mainlink_push_idle(&dp->panel_data);
 		/*
 		 * The global reset will need DP link ralated clocks to be
@@ -3868,11 +3868,11 @@ static int mdss_dp_process_phy_test_pattern_request(
 	 */
 	dp_init_panel_info(dp, HDMI_VFRMT_1920x1080p60_16_9);
 
-	pr_info("Current: link rate = 0x%x, lane count = 0x%x\n",
+	pr_debug("Current: link rate = 0x%x, lane count = 0x%x\n",
 			dp->dpcd.max_lane_count,
 			dp->link_rate);
 
-	pr_info("Requested: link rate = 0x%x, lane count = 0x%x\n",
+	pr_debug("Requested: link rate = 0x%x, lane count = 0x%x\n",
 			dp->test_data.test_link_rate,
 			dp->test_data.test_lane_count);
 
@@ -4041,7 +4041,7 @@ static int mdss_dp_process_video_pattern_request(struct mdss_dp_drv_pdata *dp)
 	if (!mdss_dp_is_video_pattern_requested(dp))
 		goto end;
 
-	pr_info("%s: bit depth=%d(%d bpp) pattern=%s\n",
+	pr_debug("%s: bit depth=%d(%d bpp) pattern=%s\n",
 		mdss_dp_get_test_name(TEST_VIDEO_PATTERN),
 		dp->test_data.test_bit_depth,
 		mdss_dp_test_bit_depth_to_bpp(dp->test_data.test_bit_depth),
@@ -4256,7 +4256,7 @@ static void mdss_dp_process_attention(struct mdss_dp_drv_pdata *dp_drv)
 		 * testing mode.
 		 */
 		if (mdss_dp_is_phy_test_pattern_requested(dp_drv)) {
-			pr_info("turning off DP controller for PHY testing\n");
+			pr_debug("turning off DP controller for PHY testing\n");
 			mdss_dp_mainlink_push_idle(&dp_drv->panel_data);
 			mdss_dp_off_hpd(dp_drv);
 		}

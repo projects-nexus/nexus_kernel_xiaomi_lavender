@@ -1248,7 +1248,7 @@ static int mdp3_ppp_handle_buf_sync(struct blit_req_list *req,
 	for (i = 0; i < buf_sync->acq_fen_fd_cnt; i++) {
 		fence = sync_fence_fdget(acq_fen_fd[i]);
 		if (fence == NULL) {
-			pr_info("%s: null fence! i=%d fd=%d\n", __func__, i,
+			pr_debug("%s: null fence! i=%d fd=%d\n", __func__, i,
 				acq_fen_fd[i]);
 			ret = -EINVAL;
 			break;

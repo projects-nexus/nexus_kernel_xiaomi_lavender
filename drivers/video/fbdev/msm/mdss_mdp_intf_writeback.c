@@ -947,7 +947,7 @@ static int mdss_mdp_wb_wait4comp(struct mdss_mdp_ctl *ctl, void *arg)
 					MDSS_MDP_REG_INTR_STATUS);
 		status = mask & isr;
 
-		pr_info_once("mask: 0x%x, isr: 0x%x, status: 0x%x\n",
+		pr_debug_once("mask: 0x%x, isr: 0x%x, status: 0x%x\n",
 				mask, isr, status);
 
 		if (status) {

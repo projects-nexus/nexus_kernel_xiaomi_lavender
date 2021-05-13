@@ -257,7 +257,7 @@ int exynos_mipi_dsi_register_lcd_driver(struct mipi_dsim_lcd_driver *lcd_drv)
 
 	dsim_ddi->dsim_lcd_drv = lcd_drv;
 
-	pr_info("registered panel driver(%s) to mipi-dsi driver.\n",
+	pr_debug("registered panel driver(%s) to mipi-dsi driver.\n",
 		lcd_drv->name);
 
 	return 0;

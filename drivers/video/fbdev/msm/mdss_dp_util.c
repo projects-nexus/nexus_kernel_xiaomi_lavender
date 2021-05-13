@@ -1585,5 +1585,5 @@ void mdss_dp_phy_send_test_pattern(struct mdss_dp_drv_pdata *dp)
 
 	value = 0x0;
 	value = readl_relaxed(io->base + DP_MAINLINK_READY);
-	pr_info("DP_MAINLINK_READY = 0x%x\n", value);
+	pr_debug("DP_MAINLINK_READY = 0x%x\n", value);
 }

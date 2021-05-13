@@ -956,7 +956,7 @@ static void pxafb_overlay_init(struct pxafb_info *fbi)
 	/* mask all IU/BS/EOF/SOF interrupts */
 	lcd_writel(fbi, LCCR5, ~0);
 
-	pr_info("PXA Overlay driver loaded successfully!\n");
+	pr_debug("PXA Overlay driver loaded successfully!\n");
 }
 
 static void pxafb_overlay_exit(struct pxafb_info *fbi)

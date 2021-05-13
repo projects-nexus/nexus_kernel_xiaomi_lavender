@@ -894,7 +894,7 @@ int mdss_smmu_probe(struct platform_device *pdev)
 
 	mdss_iommu_notify_users(prv);
 
-	pr_info("iommu v2 domain[%d] mapping and clk register successful!\n",
+	pr_debug("iommu v2 domain[%d] mapping and clk register successful!\n",
 			smmu_domain.domain);
 	return 0;
 

@@ -1803,7 +1803,7 @@ int mdp3_put_img(struct mdp3_img_data *data, int client)
 	int dir = DMA_BIDIRECTIONAL;
 
 	if (data->flags & MDP_MEMORY_ID_TYPE_FB) {
-		pr_info("mdp3_put_img fb mem buf=0x%pa\n", &data->addr);
+		pr_debug("mdp3_put_img fb mem buf=0x%pa\n", &data->addr);
 		fdput(data->srcp_f);
 		memset(&data->srcp_f, 0, sizeof(struct fd));
 	} else if (!IS_ERR_OR_NULL(data->srcp_dma_buf)) {
@@ -2150,7 +2150,7 @@ void mdp3_free(struct msm_fb_data_type *mfd)
 	unsigned long phys;
 
 	if (!mfd->iova || !mfd->fbi->screen_base) {
-		pr_info("no fbmem allocated\n");
+		pr_debug("no fbmem allocated\n");
 		return;
 	}
 
