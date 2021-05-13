@@ -5769,7 +5769,7 @@ static int mdss_mdp_overlay_on(struct msm_fb_data_type *mfd)
 panel_on:
 	if (mdp5_data->vsync_en) {
 		if ((ctl) && (ctl->ops.add_vsync_handler)) {
-			pr_info("reenabling vsync for fb%d\n", mfd->index);
+			pr_debug("reenabling vsync for fb%d\n", mfd->index);
 			mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON);
 			rc = ctl->ops.add_vsync_handler(ctl,
 					 &ctl->vsync_handler);
@@ -6671,7 +6671,7 @@ static int mdss_mdp_overlay_fb_parse_dt(struct msm_fb_data_type *mfd)
 	mdp5_mdata->mixer_swap = of_property_read_bool(pdev->dev.of_node,
 					   "qcom,mdss-mixer-swap");
 	if (mdp5_mdata->mixer_swap) {
-		pr_info("mixer swap is enabled for fb device=%s\n",
+		pr_debug("mixer swap is enabled for fb device=%s\n",
 			pdev->name);
 	}
 

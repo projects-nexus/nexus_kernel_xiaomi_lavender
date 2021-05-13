@@ -1558,7 +1558,7 @@ static int mdss_dsi_parse_hdr_settings(struct device_node *np,
 				hdr_prop->display_primaries,
 				DISPLAY_PRIMARIES_COUNT);
 		if (rc) {
-			pr_info("%s:%d, Unable to read color primaries,rc:%u",
+			pr_debug("%s:%d, Unable to read color primaries,rc:%u",
 					__func__, __LINE__,
 					hdr_prop->hdr_enabled = false);
 			}
@@ -1567,7 +1567,7 @@ static int mdss_dsi_parse_hdr_settings(struct device_node *np,
 			"qcom,mdss-dsi-panel-peak-brightness",
 			&(hdr_prop->peak_brightness));
 		if (rc) {
-			pr_info("%s:%d, Unable to read hdr brightness, rc:%u",
+			pr_debug("%s:%d, Unable to read hdr brightness, rc:%u",
 				__func__, __LINE__, rc);
 			hdr_prop->hdr_enabled = false;
 		}
@@ -1576,7 +1576,7 @@ static int mdss_dsi_parse_hdr_settings(struct device_node *np,
 			"qcom,mdss-dsi-panel-blackness-level",
 			&(hdr_prop->blackness_level));
 		if (rc) {
-			pr_info("%s:%d, Unable to read hdr brightness, rc:%u",
+			pr_debug("%s:%d, Unable to read hdr brightness, rc:%u",
 				__func__, __LINE__, rc);
 			hdr_prop->hdr_enabled = false;
 		}
@@ -1615,7 +1615,7 @@ static int mdss_dsi_parse_split_link_settings(struct device_node *np,
 		pinfo->mipi.lanes_per_sublink = (!rc ? tmp : 1);
 	}
 
-	pr_info("%s: enable %d sublinks-count %d lanes per sublink %d\n",
+	pr_debug("%s: enable %d sublinks-count %d lanes per sublink %d\n",
 		__func__, pinfo->split_link_enabled,
 		pinfo->mipi.num_of_sublinks,
 		pinfo->mipi.lanes_per_sublink);
@@ -1851,7 +1851,7 @@ static int mdss_dsi_parse_topology_config(struct device_node *np,
 			return -EINVAL;
 		}
 
-		pr_info("%s: cfg_node name %s lm_split:%dx%d pp_split:%s\n",
+		pr_debug("%s: cfg_node name %s lm_split:%dx%d pp_split:%s\n",
 			__func__, cfg_np->name,
 			timing->lm_widths[0], timing->lm_widths[1],
 			pinfo->use_pingpong_split ? "yes" : "no");
@@ -2122,7 +2122,7 @@ static void mdss_dsi_parse_dms_config(struct device_node *np,
 		pinfo->mipi.dms_mode = DYNAMIC_MODE_SWITCH_DISABLED;
 	}
 exit:
-	pr_info("%s: dynamic switch feature enabled: %d\n", __func__,
+	pr_debug("%s: dynamic switch feature enabled: %d\n", __func__,
 		pinfo->mipi.dms_mode);
 	return;
 }
@@ -2189,7 +2189,6 @@ static void mdss_dsi_parse_esd_params(struct device_node *np,
 
 	pinfo->esd_check_enabled = of_property_read_bool(np,
 		"qcom,esd-check-enabled");
-
 	if (!pinfo->esd_check_enabled)
 		return;
 
@@ -2315,7 +2314,7 @@ static void mdss_dsi_parse_partial_update_caps(struct device_node *np,
 
 	if (pinfo->mipi.mode == DSI_CMD_MODE) {
 		pinfo->partial_update_enabled = pinfo->partial_update_supported;
-		pr_info("%s: partial_update_enabled=%d\n", __func__,
+		pr_debug("%s: partial_update_enabled=%d\n", __func__,
 					pinfo->partial_update_enabled);
 		ctrl->set_col_page_addr = mdss_dsi_set_col_page_addr;
 		if (pinfo->partial_update_enabled) {
@@ -2345,12 +2344,12 @@ static int mdss_dsi_parse_panel_features(struct device_node *np,
 
 	pinfo->ulps_feature_enabled = of_property_read_bool(np,
 		"qcom,ulps-enabled");
-	pr_info("%s: ulps feature %s\n", __func__,
+	pr_debug("%s: ulps feature %s\n", __func__,
 		(pinfo->ulps_feature_enabled ? "enabled" : "disabled"));
 
 	pinfo->ulps_suspend_enabled = of_property_read_bool(np,
 		"qcom,suspend-ulps-enabled");
-	pr_info("%s: ulps during suspend feature %s", __func__,
+	pr_debug("%s: ulps during suspend feature %s", __func__,
 		(pinfo->ulps_suspend_enabled ? "enabled" : "disabled"));
 
 	mdss_dsi_parse_dms_config(np, ctrl);
@@ -2472,7 +2471,7 @@ static int mdss_dsi_set_refresh_rate_range(struct device_node *pan_node,
 		rc = 0;
 	}
 
-	pr_info("dyn_fps: min = %d, max = %d\n",
+	pr_debug("dyn_fps: min = %d, max = %d\n",
 			pinfo->min_fps, pinfo->max_fps);
 	return rc;
 }
@@ -2770,7 +2769,7 @@ static int mdss_dsi_panel_timing_from_dt(struct device_node *np,
 
 	if (np->name) {
 		pt->timing.name = kstrdup(np->name, GFP_KERNEL);
-		pr_info("%s: found new timing \"%s\" (%pK)\n", __func__,
+		pr_debug("%s: found new timing \"%s\" (%pK)\n", __func__,
 				np->name, &pt->timing);
 	}
 
@@ -3239,13 +3238,13 @@ static int msm_lcd_name_create_sysfs(void){
    int ret;
    msm_lcd_name=kobject_create_and_add("android_lcd", NULL);
    if(msm_lcd_name==NULL){
-     pr_info("msm_lcd_name_create_sysfs_ failed\n");
+     pr_debug("msm_lcd_name_create_sysfs_ failed\n");
      ret=-ENOMEM;
      return ret;
    }
    ret=sysfs_create_file(msm_lcd_name, &dev_attr_lcd_name.attr);
    if(ret){
-    pr_info("%s failed \n", __func__);
+    pr_debug("%s failed \n", __func__);
     kobject_del(msm_lcd_name);
    }
    return 0;
@@ -3271,13 +3270,13 @@ static int msm_whitepoint_create_sysfs(void){
    int ret;
    msm_whitepoint=kobject_create_and_add("android_whitepoint", NULL);
    if(msm_whitepoint==NULL){
-     pr_info("msm_whitepoint_create_sysfs_ failed\n");
+     pr_debug("msm_whitepoint_create_sysfs_ failed\n");
      ret=-ENOMEM;
      return ret;
    }
    ret=sysfs_create_file(msm_whitepoint, &dev_attr_whitepoint.attr);
    if(ret){
-    pr_info("%s failed \n", __func__);
+    pr_debug("%s failed \n", __func__);
     kobject_del(msm_whitepoint);
    }
    return 0;
@@ -3302,10 +3301,10 @@ int mdss_dsi_panel_init(struct device_node *node,
 	pinfo->panel_name[0] = '\0';
 	panel_name = of_get_property(node, "qcom,mdss-dsi-panel-name", NULL);
 	if (!panel_name) {
-		pr_info("%s:%d, Panel name not specified\n",
+		pr_debug("%s:%d, Panel name not specified\n",
 						__func__, __LINE__);
 	} else {
-		pr_info("%s: Panel Name = %s\n", __func__, panel_name);
+		pr_debug("%s: Panel Name = %s\n", __func__, panel_name);
 		strlcpy(&pinfo->panel_name[0], panel_name, MDSS_MAX_PANEL_LEN);
 	}
 	if (strstr(panel_name, "tianma") == NULL){

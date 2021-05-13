@@ -800,7 +800,7 @@ static int hvfb_probe(struct hv_device *hdev,
 	}
 
 	hvfb_get_option(info);
-	pr_info("Screen resolution: %dx%d, Color depth: %d\n",
+	pr_debug("Screen resolution: %dx%d, Color depth: %d\n",
 		screen_width, screen_height, screen_depth);
 
 

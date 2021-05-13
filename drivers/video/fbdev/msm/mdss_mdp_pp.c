@@ -3226,7 +3226,7 @@ int mdss_mdp_pp_init(struct device *dev)
 			ret = -ENOMEM;
 		} else {
 			if (mdss_mdp_pp_dt_parse(dev))
-				pr_info("No PP info in device tree\n");
+				pr_debug("No PP info in device tree\n");
 
 			ret = pp_get_driver_ops(&pp_driver_ops);
 			if (ret) {
@@ -5702,7 +5702,7 @@ int mdss_mdp_hist_collect(struct mdp_histogram_data *hist)
 			hist_data_addr = hist_info->data;
 		}
 	} else {
-		pr_info("No Histogram at location %d\n", PP_LOCAT(hist->block));
+		pr_debug("No Histogram at location %d\n", PP_LOCAT(hist->block));
 		goto hist_collect_exit;
 	}
 	ret = copy_to_user(hist->c0, hist_data_addr, sizeof(u32) *

@@ -748,7 +748,7 @@ static int omap_lcdc_init(struct omapfb_device *fbdev, int ext_mode,
 	if ((r = setup_fbmem(req_vram)) < 0)
 		goto fail5;
 
-	pr_info("omapfb: LCDC initialized\n");
+	pr_debug("omapfb: LCDC initialized\n");
 
 	return 0;
 fail5:

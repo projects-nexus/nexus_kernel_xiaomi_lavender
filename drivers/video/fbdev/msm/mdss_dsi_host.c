@@ -1019,14 +1019,14 @@ void mdss_dsi_controller_cfg(int enable,
 			   status,
 			   ((status & 0x02) == 0),
 			       sleep_us, timeout_us))
-		pr_info("%s: DSI status=%x failed\n", __func__, status);
+		pr_debug("%s: DSI status=%x failed\n", __func__, status);
 
 	/* Check for x_HS_FIFO_EMPTY */
 	if (readl_poll_timeout(((ctrl_pdata->ctrl_base) + 0x000c),
 			   status,
 			   ((status & 0x11111000) == 0x11111000),
 			       sleep_us, timeout_us))
-		pr_info("%s: FIFO status=%x failed\n", __func__, status);
+		pr_debug("%s: FIFO status=%x failed\n", __func__, status);
 
 	/* Check for VIDEO_MODE_ENGINE_BUSY */
 	if (readl_poll_timeout(((ctrl_pdata->ctrl_base) + 0x0008),
@@ -1125,7 +1125,7 @@ void mdss_dsi_cmd_bta_sw_trigger(struct mdss_panel_data *pdata)
 	if (readl_poll_timeout(((ctrl_pdata->ctrl_base) + 0x0008),
 				status, ((status & 0x0010) == 0),
 				0, timeout_us))
-		pr_info("%s: DSI status=%x failed\n", __func__, status);
+		pr_debug("%s: DSI status=%x failed\n", __func__, status);
 
 	mdss_dsi_ack_err_status(ctrl_pdata);
 

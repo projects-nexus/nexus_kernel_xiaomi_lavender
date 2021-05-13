@@ -61,7 +61,7 @@ extern int msm_ba_debug_out;
 	do { \
 		if (msm_ba_debug & __level) { \
 			if (msm_ba_debug_out == BA_OUT_PRINTK) { \
-				pr_info(BA_DBG_TAG __fmt "\n", \
+				pr_debug(BA_DBG_TAG __fmt "\n", \
 						__LINE__, \
 						BA_MSG_PRIO2STRING(__level), \
 						## arg); \

@@ -112,7 +112,7 @@ static int dsi_panel_handler(struct mdss_panel_data *pdata, int enable)
 		if (dsi_intf.op_mode_config)
 			dsi_intf.op_mode_config(DSI_CMD_MODE, pdata);
 		if (pdata->panel_info.dynamic_switch_pending) {
-			pr_info("%s: switching to %s mode\n", __func__,
+			pr_debug("%s: switching to %s mode\n", __func__,
 			(pdata->panel_info.mipi.mode ? "video" : "command"));
 			if (pdata->panel_info.type == MIPI_CMD_PANEL) {
 				ctrl_pdata->switch_mode(pdata, DSI_VIDEO_MODE);
@@ -222,7 +222,7 @@ static int dsi_parse_gpio(struct platform_device *pdev,
 		ctrl_pdata->mode_gpio = of_get_named_gpio(np,
 						"qcom,platform-mode-gpio", 0);
 		if (!gpio_is_valid(ctrl_pdata->mode_gpio))
-			pr_info("%s:%d, reset gpio not specified\n",
+			pr_debug("%s:%d, reset gpio not specified\n",
 							__func__, __LINE__);
 	}
 
