@@ -1790,7 +1790,7 @@ void mdss_mdp_debug_mid(u32 mid)
 			len = get_dump_range(&xlog_node->offset,
 				blk_base->max_offset);
 			addr = blk_base->base + xlog_node->offset.start;
-			pr_info("%s: mid:%d range_base=0x%pK start=0x%x end=0x%x\n",
+			pr_debug("%s: mid:%d range_base=0x%pK start=0x%x end=0x%x\n",
 				xlog_node->range_name, mid, addr,
 				xlog_node->offset.start, xlog_node->offset.end);
 
@@ -2061,7 +2061,7 @@ void mdss_mdp_dump(struct mdss_data_type *mdata)
 	__dump_mdp(&s, mdata);
 	seq_puts(&s, "\n");
 
-	pr_info("MDP DUMP\n------------------------\n");
+	pr_debug("MDP DUMP\n------------------------\n");
 	for (i = 0; i < s.count; i += DUMP_CHUNK) {
 		if ((s.count - i) > DUMP_CHUNK) {
 			char c = s.buf[i + DUMP_CHUNK];

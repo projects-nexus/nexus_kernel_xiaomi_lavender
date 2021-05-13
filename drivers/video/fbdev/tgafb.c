@@ -1502,15 +1502,15 @@ static int tgafb_register(struct device *dev)
 	}
 
 	if (tga_bus_pci) {
-		pr_info("tgafb: DC21030 [TGA] detected, rev=0x%02x\n",
+		pr_debug("tgafb: DC21030 [TGA] detected, rev=0x%02x\n",
 			par->tga_chip_rev);
-		pr_info("tgafb: at PCI bus %d, device %d, function %d\n",
+		pr_debug("tgafb: at PCI bus %d, device %d, function %d\n",
 			to_pci_dev(dev)->bus->number,
 			PCI_SLOT(to_pci_dev(dev)->devfn),
 			PCI_FUNC(to_pci_dev(dev)->devfn));
 	}
 	if (tga_bus_tc)
-		pr_info("tgafb: SFB+ detected, rev=0x%02x\n",
+		pr_debug("tgafb: SFB+ detected, rev=0x%02x\n",
 			par->tga_chip_rev);
 	fb_info(info, "%s frame buffer device at 0x%lx\n",
 		info->fix.id, (long)bar0_start);

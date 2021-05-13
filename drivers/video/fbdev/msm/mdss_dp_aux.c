@@ -1398,7 +1398,7 @@ int mdss_dp_aux_parse_vx_px(struct mdss_dp_drv_pdata *ep)
 	int ret = 0;
 	u32 v0, p0, v1, p1, v2, p2, v3, p3;
 
-	pr_info("Parsing DPCP for updated voltage and pre-emphasis levels\n");
+	pr_debug("Parsing DPCP for updated voltage and pre-emphasis levels\n");
 
 	rlen = dp_aux_read_buf(ep, addr1, param_len, 0);
 	if (rlen < param_len) {
@@ -1411,7 +1411,7 @@ int mdss_dp_aux_parse_vx_px(struct mdss_dp_drv_pdata *ep)
 	bp = rp->data;
 	data = *bp++;
 
-	pr_info("lanes 0/1 (Byte 0x206): 0x%x\n", data);
+	pr_debug("lanes 0/1 (Byte 0x206): 0x%x\n", data);
 
 	v0 = data & 0x3;
 	data = data >> 2;
@@ -1434,7 +1434,7 @@ int mdss_dp_aux_parse_vx_px(struct mdss_dp_drv_pdata *ep)
 	bp = rp->data;
 	data = *bp++;
 
-	pr_info("lanes 2/3 (Byte 0x207): 0x%x\n", data);
+	pr_debug("lanes 2/3 (Byte 0x207): 0x%x\n", data);
 
 	v2 = data & 0x3;
 	data = data >> 2;
@@ -1446,20 +1446,20 @@ int mdss_dp_aux_parse_vx_px(struct mdss_dp_drv_pdata *ep)
 	p3 = data & 0x3;
 	data = data >> 2;
 
-	pr_info("vx: 0=%d, 1=%d, 2=%d, 3=%d\n", v0, v1, v2, v3);
-	pr_info("px: 0=%d, 1=%d, 2=%d, 3=%d\n", p0, p1, p2, p3);
+	pr_debug("vx: 0=%d, 1=%d, 2=%d, 3=%d\n", v0, v1, v2, v3);
+	pr_debug("px: 0=%d, 1=%d, 2=%d, 3=%d\n", p0, p1, p2, p3);
 
 	/**
 	 * Update the voltage and pre-emphasis levels as per DPCD request
 	 * vector.
 	 */
-	pr_info("Current: v_level = 0x%x, p_level = 0x%x\n",
+	pr_debug("Current: v_level = 0x%x, p_level = 0x%x\n",
 			ep->v_level, ep->p_level);
-	pr_info("Requested: v_level = 0x%x, p_level = 0x%x\n", v0, p0);
+	pr_debug("Requested: v_level = 0x%x, p_level = 0x%x\n", v0, p0);
 	ep->v_level = v0;
 	ep->p_level = p0;
 
-	pr_info("Success\n");
+	pr_debug("Success\n");
 end:
 	return ret;
 }

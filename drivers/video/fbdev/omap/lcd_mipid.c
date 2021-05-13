@@ -559,7 +559,7 @@ static int mipid_detect(struct mipid_device *md)
 
 	md->revision = display_id[1];
 	md->panel.data_lines = pdata->data_lines;
-	pr_info("omapfb: %s rev %02x LCD detected, %d data lines\n",
+	pr_debug("omapfb: %s rev %02x LCD detected, %d data lines\n",
 			md->panel.name, md->revision, md->panel.data_lines);
 
 	return 0;

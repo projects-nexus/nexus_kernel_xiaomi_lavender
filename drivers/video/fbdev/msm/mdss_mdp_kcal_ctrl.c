@@ -606,7 +606,7 @@ static int __init kcal_ctrl_init(void)
 	if (platform_device_register(&kcal_ctrl_device))
 		return -ENODEV;
 
-	pr_info("%s: registered\n", __func__);
+	pr_debug("%s: registered\n", __func__);
 
 	return 0;
 }

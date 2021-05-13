@@ -497,7 +497,7 @@ static int pp_pa_set_config(char __iomem *base_addr,
 		return -EINVAL;
 	}
 	if (!(pa_cfg_data->flags & ~(MDP_PP_OPS_READ))) {
-		pr_info("only read ops is set %d", pa_cfg_data->flags);
+		pr_debug("only read ops is set %d", pa_cfg_data->flags);
 		return 0;
 	}
 

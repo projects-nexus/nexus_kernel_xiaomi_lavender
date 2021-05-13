@@ -256,10 +256,10 @@ static int mdss_qpic_panel_probe(struct platform_device *pdev)
 
 	panel_name = of_get_property(pdev->dev.of_node, "label", NULL);
 	if (!panel_name)
-		pr_info("%s:%d, panel name not specified\n",
+		pr_debug("%s:%d, panel name not specified\n",
 						__func__, __LINE__);
 	else
-		pr_info("%s: Panel Name = %s\n", __func__, panel_name);
+		pr_debug("%s: Panel Name = %s\n", __func__, panel_name);
 
 	rc = mdss_panel_parse_dt(pdev, &vendor_pdata);
 	if (rc)
@@ -271,7 +271,7 @@ static int mdss_qpic_panel_probe(struct platform_device *pdev)
 		qpic_panel_off = ili9341_off;
 	} else {
 		/* select default panel driver */
-		pr_info("%s: select default panel driver\n", __func__);
+		pr_debug("%s: select default panel driver\n", __func__);
 		qpic_panel_on = ili9341_on;
 		qpic_panel_off = ili9341_off;
 	}

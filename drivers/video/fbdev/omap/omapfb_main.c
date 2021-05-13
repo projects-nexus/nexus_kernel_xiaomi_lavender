@@ -1706,7 +1706,7 @@ static int omapfb_do_probe(struct platform_device *pdev,
 	if (r)
 		goto cleanup;
 
-	pr_info("omapfb: configured for panel %s\n", fbdev->panel->name);
+	pr_debug("omapfb: configured for panel %s\n", fbdev->panel->name);
 
 	def_vxres = def_vxres ? def_vxres : fbdev->panel->x_res;
 	def_vyres = def_vyres ? def_vyres : fbdev->panel->y_res;
@@ -1777,9 +1777,9 @@ static int omapfb_do_probe(struct platform_device *pdev,
 
 	omapfb_dev = fbdev;
 
-	pr_info("omapfb: Framebuffer initialized. Total vram %lu planes %d\n",
+	pr_debug("omapfb: Framebuffer initialized. Total vram %lu planes %d\n",
 			vram, fbdev->mem_desc.region_cnt);
-	pr_info("omapfb: Pixclock %lu kHz hfreq %lu.%lu kHz "
+	pr_debug("omapfb: Pixclock %lu kHz hfreq %lu.%lu kHz "
 			"vfreq %lu.%lu Hz\n",
 			phz / 1000, hhz / 10000, hhz % 10, vhz / 10, vhz % 10);
 

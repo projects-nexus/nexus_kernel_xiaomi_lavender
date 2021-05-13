@@ -1017,7 +1017,7 @@ static int dlfb_is_valid_mode(struct fb_videomode *mode,
 		return 0;
 	}
 
-	pr_info("%dx%d @ %d Hz valid mode\n", mode->xres, mode->yres,
+	pr_debug("%dx%d @ %d Hz valid mode\n", mode->xres, mode->yres,
 		mode->refresh);
 
 	return 1;
@@ -1105,7 +1105,7 @@ static int dlfb_ops_blank(int blank_mode, struct fb_info *info)
 	char *bufptr;
 	struct urb *urb;
 
-	pr_info("/dev/fb%d FB_BLANK mode %d --> %d\n",
+	pr_debug("/dev/fb%d FB_BLANK mode %d --> %d\n",
 		info->node, dev->blank_mode, blank_mode);
 
 	if ((dev->blank_mode == FB_BLANK_POWERDOWN) &&
@@ -1199,7 +1199,7 @@ static int dlfb_realloc_framebuffer(struct dlfb_data *dev, struct fb_info *info)
 		if (shadow)
 			new_back = vzalloc(new_len);
 		if (!new_back)
-			pr_info("No shadow/backing buffer allocated\n");
+			pr_debug("No shadow/backing buffer allocated\n");
 		else {
 			vfree(dev->backing_buffer);
 			dev->backing_buffer = new_back;
@@ -1417,7 +1417,7 @@ static ssize_t edid_show(
 	if (off + count > dev->edid_size)
 		count = dev->edid_size - off;
 
-	pr_info("sysfs edid copy %p to %p, %d bytes\n",
+	pr_debug("sysfs edid copy %p to %p, %d bytes\n",
 		dev->edid, buf, (int) count);
 
 	memcpy(buf, dev->edid, count);
@@ -1445,7 +1445,7 @@ static ssize_t edid_store(
 	if (!dev->edid || memcmp(src, dev->edid, src_size))
 		return -EINVAL;
 
-	pr_info("sysfs written EDID is new default\n");
+	pr_debug("sysfs written EDID is new default\n");
 	dlfb_ops_set_par(fb_info);
 	return src_size;
 }
@@ -1534,7 +1534,7 @@ static int dlfb_parse_vendor_descriptor(struct dlfb_data *dev,
 	}
 
 	if (total_len > 5) {
-		pr_info("vendor descriptor length:%x data:%11ph\n", total_len,
+		pr_debug("vendor descriptor length:%x data:%11ph\n", total_len,
 			desc);
 
 		if ((desc[0] != total_len) || /* descriptor length */
@@ -1571,7 +1571,7 @@ static int dlfb_parse_vendor_descriptor(struct dlfb_data *dev,
 			desc += length;
 		}
 	} else {
-		pr_info("vendor descriptor not available (%d)\n", total_len);
+		pr_debug("vendor descriptor not available (%d)\n", total_len);
 	}
 
 	goto success;
@@ -1610,14 +1610,14 @@ static int dlfb_usb_probe(struct usb_interface *interface,
 	dev->gdev = &usbdev->dev; /* our generic struct device * */
 	usb_set_intfdata(interface, dev);
 
-	pr_info("%s %s - serial #%s\n",
+	pr_debug("%s %s - serial #%s\n",
 		usbdev->manufacturer, usbdev->product, usbdev->serial);
-	pr_info("vid_%04x&pid_%04x&rev_%04x driver's dlfb_data struct at %p\n",
+	pr_debug("vid_%04x&pid_%04x&rev_%04x driver's dlfb_data struct at %p\n",
 		usbdev->descriptor.idVendor, usbdev->descriptor.idProduct,
 		usbdev->descriptor.bcdDevice, dev);
-	pr_info("console enable=%d\n", console);
-	pr_info("fb_defio enable=%d\n", fb_defio);
-	pr_info("shadow enable=%d\n", shadow);
+	pr_debug("console enable=%d\n", console);
+	pr_debug("fb_defio enable=%d\n", fb_defio);
+	pr_debug("shadow enable=%d\n", shadow);
 
 	dev->sku_pixel_limit = 2048 * 1152; /* default to maximum */
 
@@ -1726,7 +1726,7 @@ static void dlfb_init_framebuffer_work(struct work_struct *work)
 		pr_warn("device_create_bin_file failed %d\n", retval);
 	}
 
-	pr_info("DisplayLink USB device /dev/fb%d attached. %dx%d resolution."
+	pr_debug("DisplayLink USB device /dev/fb%d attached. %dx%d resolution."
 			" Using %dK framebuffer memory\n", info->node,
 			info->var.xres, info->var.yres,
 			((dev->backing_buffer) ?
@@ -1746,7 +1746,7 @@ static void dlfb_usb_disconnect(struct usb_interface *interface)
 	dev = usb_get_intfdata(interface);
 	info = dev->info;
 
-	pr_info("USB disconnect starting\n");
+	pr_debug("USB disconnect starting\n");
 
 	/* we virtualize until all fb clients release. Then we free */
 	dev->virtualized = true;

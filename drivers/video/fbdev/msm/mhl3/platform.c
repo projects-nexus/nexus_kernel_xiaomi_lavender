@@ -1590,7 +1590,7 @@ static int __devinit si_8620_mhl_tx_i2c_probe(struct i2c_client *client,
 {
 	int ret;
 
-	pr_info("%s(), i2c_device_id = %pK\n", __func__, id);
+	pr_debug("%s(), i2c_device_id = %pK\n", __func__, id);
 
 #if defined(SIMG_USE_DTS)
 	/*
@@ -1844,7 +1844,7 @@ static int __devinit si_8620_mhl_tx_spi_probe(struct spi_device *spi)
 {
 	int ret;
 
-	pr_info("%s(), spi = %pK\n", __func__, spi);
+	pr_debug("%s(), spi = %pK\n", __func__, spi);
 	spi->bits_per_word = 8;
 	spi_dev = spi;
 	spi_bus_num = spi->master->bus_num;
@@ -1929,7 +1929,7 @@ static int si_8620_mhl_spi_remove(struct spi_device *spi_dev)
 static int __devexit si_8620_mhl_spi_remove(struct spi_device *spi_dev)
 #endif
 {
-	pr_info("%s() called\n", __func__);
+	pr_debug("%s() called\n", __func__);
 
 	gpio_free_array(starter_kit_control_gpios,
 			ARRAY_SIZE(starter_kit_control_gpios));
@@ -1971,7 +1971,7 @@ static int __init add_spi_device_to_bus(void)
 	struct spi_master *spi_master;
 	int status = 0;
 
-	pr_info("add_spi_device_to_bus called\n");
+	pr_debug("add_spi_device_to_bus called\n");
 
 	spi_master = spi_busnum_to_master(SPI_BUS_NUM);
 	if (spi_master == NULL) {
@@ -2080,11 +2080,11 @@ static int __init si_8620_init(void)
 {
 	int ret;
 
-	pr_info("mhl: Starting SiI%d Driver v%s\n", MHL_PRODUCT_NUM,
+	pr_debug("mhl: Starting SiI%d Driver v%s\n", MHL_PRODUCT_NUM,
 		buildVersion);
-	pr_info("mhl: %s\n", buildTime);
+	pr_debug("mhl: %s\n", buildTime);
 #if (INCLUDE_HID == 1)
-	pr_info("mhl: Supports MHL3 HID\n");
+	pr_debug("mhl: Supports MHL3 HID\n");
 #endif
 
 	sema_init(&platform_lock, 1);
@@ -2139,7 +2139,7 @@ static void __exit si_8620_exit(void)
 	int idx;
 #endif
 
-	pr_info("si_8620_exit called\n");
+	pr_debug("si_8620_exit called\n");
 
 	si_8620_power_control(false);
 

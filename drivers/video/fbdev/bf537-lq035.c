@@ -799,7 +799,7 @@ static int bfin_lq035_probe(struct platform_device *pdev)
 	}
 	lcd_dev->props.max_contrast = 255,
 
-	pr_info("initialized");
+	pr_debug("initialized");
 
 	return 0;
 out_lcd:
@@ -844,7 +844,7 @@ static int bfin_lq035_remove(struct platform_device *pdev)
 
 	free_ports();
 
-	pr_info("unregistered LCD driver\n");
+	pr_debug("unregistered LCD driver\n");
 
 	return 0;
 }
