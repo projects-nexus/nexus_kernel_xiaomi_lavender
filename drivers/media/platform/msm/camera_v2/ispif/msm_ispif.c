@@ -1273,7 +1273,7 @@ static int msm_ispif_restart_frame_boundary(struct ispif_device *ispif,
 		}
 	}
 
-	pr_info("%s: ISPIF reset hw done, Restarting", __func__);
+	pr_debug("%s: ISPIF reset hw done, Restarting", __func__);
 	rc = msm_camera_clk_enable(&ispif->pdev->dev,
 		ispif->clk_info, ispif->clks,
 		ispif->num_clk, 0);
@@ -1509,7 +1509,7 @@ static int msm_ispif_reconfig_3d_output(struct ispif_device *ispif,
 				__LINE__, vfe_id);
 		return -EINVAL;
 	}
-	pr_info("%s;%d Reconfiguring 3D mode for VFE%d", __func__, __LINE__,
+	pr_debug("%s;%d Reconfiguring 3D mode for VFE%d", __func__, __LINE__,
 			vfe_id);
 	reg_data =  0xFFFCFFFC;
 	msm_camera_io_w_mb(reg_data, ispif->base +
