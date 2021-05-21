@@ -1,4 +1,4 @@
-CONFIG_LOCALVERSION="-lineageos"
+CONFIG_LOCALVERSION="-NekoKernel-Lite"
 # CONFIG_USELIB is not set
 CONFIG_AUDIT=y
 # CONFIG_AUDITSYSCALL is not set
