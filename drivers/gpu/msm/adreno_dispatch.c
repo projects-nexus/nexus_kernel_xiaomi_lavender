@@ -1561,7 +1561,7 @@ static void _skip_cmd(struct kgsl_drawobj_cmd *cmdobj,
 	struct kgsl_drawobj_cmd **replay, int count)
 {
 	struct kgsl_drawobj *drawobj = DRAWOBJ(cmdobj);
-	struct adreno_context *drawctxt = ADRENO_CONTEXT(drawobj->context);
+	struct adreno_context * __maybe_unused drawctxt = ADRENO_CONTEXT(drawobj->context);
 	int i;
 
 	/*
