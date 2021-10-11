@@ -17165,7 +17165,7 @@ QDF_STATUS sme_apf_offload_deregister_callback(tHalHandle h_hal)
  *
  * Return: QDF_STATUS_SUCCESS on success, non-zero error code on failure.
  */
-QDF_STATUS sme_create_mon_session(tHalHandle hal_handle, tSirMacAddr bss_id)
+QDF_STATUS sme_create_mon_session(tHalHandle hal_handle, uint8_t *bssid)
 {
 	QDF_STATUS status = QDF_STATUS_E_FAILURE;
 	struct sir_create_session *msg;
@@ -17174,7 +17174,7 @@ QDF_STATUS sme_create_mon_session(tHalHandle hal_handle, tSirMacAddr bss_id)
 	if (NULL != msg) {
 		msg->type = eWNI_SME_MON_INIT_SESSION;
 		msg->msg_len = sizeof(*msg);
-		qdf_mem_copy(msg->bss_id.bytes, bss_id, QDF_MAC_ADDR_SIZE);
+		qdf_mem_copy(msg->bss_id.bytes, bssid, QDF_MAC_ADDR_SIZE);
 		status = cds_send_mb_message_to_mac(msg);
 	}
 	return status;
