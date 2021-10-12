@@ -1,3 +1,8 @@
+# Disable void-pointer-to-enum-cast
+ifeq ($(cc-name),clang)
+EXTRA_CFLAGS += $(call cc-disable-warning, void-pointer-to-enum-cast)
+endif
+
 obj-$(CONFIG_IOMMU_API) += iommu.o
 obj-$(CONFIG_IOMMU_API) += iommu-traces.o
 obj-$(CONFIG_IOMMU_API) += iommu-sysfs.o
