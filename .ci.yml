@@ -6,15 +6,18 @@ name : OldCam
 version: aRise-OLD
 steps:
  - name: aRise
-   image: panchajanya1999/archlinux:latest
+   image: ubuntu:jammy-20211029
    environment:
      token:
        from_secret: token
      chat_id:
        from_secret: chat_id
    commands:
-     - pacman -Sy && pacman -S dpkg --noconfirm
-     - wget http://archive.ubuntu.com/ubuntu/pool/main/n/ncurses/libtinfo6_6.2+20201114-2build1_amd64.deb -O libtinfo6.deb && dpkg-deb -R libtinfo6.deb libtinfo && cp libtinfo/lib/x86_64-linux-gnu/libtinfo.so.6.2 /usr/lib/libtinfo.so.6
+     - cp -af sources.list /etc/apt/
+     - cp -af 99own /etc/apt/apt.conf.d/
+     - apt update && apt upgrade -y
+     - ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && date
+     - apt install -f -y git bison flex libxml2 libssl-dev bc zip ccache p7zip default-jre python3 python3-pip wget curl
      - bash build.sh --old
 
 ---
@@ -25,15 +28,18 @@ name : NewCam
 version: aRise-NEW
 steps:
  - name: aRise
-   image: panchajanya1999/archlinux:latest
+   image: ubuntu:jammy-20211029
    environment:
      token:
        from_secret: token
      chat_id:
        from_secret: chat_id
    commands:
-     - pacman -Sy && pacman -S dpkg --noconfirm
-     - wget http://archive.ubuntu.com/ubuntu/pool/main/n/ncurses/libtinfo6_6.2+20201114-2build1_amd64.deb -O libtinfo6.deb && dpkg-deb -R libtinfo6.deb libtinfo && cp libtinfo/lib/x86_64-linux-gnu/libtinfo.so.6.2 /usr/lib/libtinfo.so.6
+     - cp -af sources.list /etc/apt/
+     - cp -af 99own /etc/apt/apt.conf.d/
+     - apt update && apt upgrade -y
+     - ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && date
+     - apt install -f -y git bison flex libxml2 libssl-dev bc zip ccache p7zip default-jre python3 python3-pip wget curl
      - bash build.sh --new
 
 ---
@@ -42,15 +48,18 @@ name : Qti-Old
 version: aRise-QTI-OLD
 steps:
  - name: aRise
-   image: panchajanya1999/archlinux:latest
+   image: ubuntu:jammy-20211029
    environment:
      token:
        from_secret: token
      chat_id:
        from_secret: chat_id
    commands:
-     - pacman -Sy && pacman -S dpkg --noconfirm
-     - wget http://archive.ubuntu.com/ubuntu/pool/main/n/ncurses/libtinfo6_6.2+20201114-2build1_amd64.deb -O libtinfo6.deb && dpkg-deb -R libtinfo6.deb libtinfo && cp libtinfo/lib/x86_64-linux-gnu/libtinfo.so.6.2 /usr/lib/libtinfo.so.6
+     - cp -af sources.list /etc/apt/
+     - cp -af 99own /etc/apt/apt.conf.d/
+     - apt update && apt upgrade -y
+     - ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && date
+     - apt install -f -y git bison flex libxml2 libssl-dev bc zip ccache p7zip default-jre python3 python3-pip wget curl
      - git fetch https://github.com/Projects-aRise/android_kernel_xiaomi_lavender Qti
      - git cherry-pick f6bcac58941a4ecb1646819464298f8aa4d91571^..4c27e5c6303ebc2bda849dd97223f734762c20f6
      - bash build.sh --qti
