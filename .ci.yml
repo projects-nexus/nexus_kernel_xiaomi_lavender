@@ -1,0 +1,18 @@
+--- 
+clone: 
+  depth: 1
+kind: pipeline
+name : neXus Lavender
+version: rev1.5_template
+steps:
+ - name: neXus Lavender
+   image: archlinux:base-devel
+   environment:
+     token:
+       from_secret: token
+     chat_id:
+       from_secret: chat_id
+   commands:
+     - curl -LO "https://repo.archlinuxcn.org/x86_64/glibc-linux4-2.33-4-x86_64.pkg.tar.zst" && bsdtar -C / -xvf "glibc-linux4-2.33-4-x86_64.pkg.tar.zst"
+     - pacman -Sy && pacman -S git bc inetutils python2 zip jdk-openjdk --noconfirm   
+     - bash build.sh
