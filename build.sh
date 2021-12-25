@@ -19,11 +19,11 @@ DEVICE=lavender
 
 # Specify Version
 if [ "$1" = "--qti" ]; then
-VERSION=x3.0-Qti-Old
+VERSION=Qti-Old
 elif [ "$1" = "--old" ]; then
-VERSION=x3.0-Old
+VERSION=Old
 elif [ "$1" = "--new" ]; then
-VERSION=x3.0-New
+VERSION=New
 echo "CONFIG_XIAOMI_NEWCAM=y" >> arch/arm64/configs/lavender-perf_defconfig
 fi
 
