@@ -46,7 +46,7 @@ clone() {
 	fi
 
          echo "|| Cloning Anykernel ||"
-	git clone --depth=1 -b lavender https://github.com/nexus-projects/AnyKernel3
+	git clone --depth=1 -b lavender https://github.com/Projects-aRise/AnyKernel3
 }
 
 # Export
@@ -134,7 +134,7 @@ function compile() {
 # Zipping
 function zipping() {
     cd AnyKernel3 || exit 1
-    zip -r9 Nexus-EAS-v9.3-old-${DEVICE}-KERNEL-${TANGGAL}.zip *
+    zip -r9 aRise-EAS-x3.0-old-${DEVICE}-KERNEL-${TANGGAL}.zip *
     cd ..
 }
 clone
