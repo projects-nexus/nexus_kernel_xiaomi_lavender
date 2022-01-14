@@ -17,7 +17,7 @@ steps:
      - cp -af 99own /etc/apt/apt.conf.d/
      - apt update && apt upgrade -y
      - ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && date
-     - apt install -f -y git bison flex libxml2 libssl-dev bc zip ccache p7zip default-jre python3 python3-pip wget curl
+     - apt install -f -y git bison flex libxml2 libssl-dev bc zip default-jre python3 python3-pip wget curl
      - bash build.sh --old
 
 ---
@@ -39,10 +39,12 @@ steps:
      - cp -af 99own /etc/apt/apt.conf.d/
      - apt update && apt upgrade -y
      - ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && date
-     - apt install -f -y git bison flex libxml2 libssl-dev bc zip ccache p7zip default-jre python3 python3-pip wget curl
+     - apt install -f -y git bison flex libxml2 libssl-dev bc zip default-jre python3 python3-pip wget curl
      - bash build.sh --new
 
 ---
+clone:
+  depth: 1
 kind: pipeline
 name : Qti-Old
 version: aRise-QTI-OLD
@@ -59,7 +61,6 @@ steps:
      - cp -af 99own /etc/apt/apt.conf.d/
      - apt update && apt upgrade -y
      - ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && date
-     - apt install -f -y git bison flex libxml2 libssl-dev bc zip ccache p7zip default-jre python3 python3-pip wget curl
-     - git fetch https://github.com/Projects-aRise/android_kernel_xiaomi_lavender Qti
-     - git cherry-pick f6bcac58941a4ecb1646819464298f8aa4d91571^..4c27e5c6303ebc2bda849dd97223f734762c20f6
+     - apt install -f -y git bison flex libxml2 libssl-dev bc zip default-jre python3 python3-pip wget curl
+     - git apply QTI_HAPTICS.p
      - bash build.sh --qti
