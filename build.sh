@@ -8,7 +8,7 @@
 KERNEL_DIR="$(pwd)"
 
 # Zip Name
-ZIPNAME="aRise-EAS"
+ZIPNAME="Nexus-EAS"
 
 # Specify compiler ( eva , azure , proton , arter , aosp & nexus )
 COMPILER=azure
@@ -49,7 +49,7 @@ DATE=$(TZ=Asia/Kolkata date +"%Y%m%d-%T")
 START=$(date +"%s")
 TANGGAL=$(date +"%F%S")
 
-FINAL_ZIP=${ZIPNAME}-x4.0-${VERSION}-${DEVICE}-${TANGGAL}.zip
+FINAL_ZIP=${ZIPNAME}-x9.4-${VERSION}-${DEVICE}-${TANGGAL}.zip
 ##----------------------------------------------------------##
 
 # Cloning Dependencies
