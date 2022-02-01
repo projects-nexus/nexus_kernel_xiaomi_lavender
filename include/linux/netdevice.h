@@ -1617,6 +1617,11 @@ struct net_device {
 	unsigned char		if_port;
 	unsigned char		dma;
 
+	/* Note : dev->mtu is often read without holding a lock.
+	 * Writers usually hold RTNL.
+	 * It is recommended to use READ_ONCE() to annotate the reads,
+	 * and to use WRITE_ONCE() to annotate the writes.
+	 */
 	unsigned int		mtu;
 	unsigned short		type;
 	unsigned short		hard_header_len;
@@ -2008,7 +2013,10 @@ struct napi_gro_cb {
 	/* Number of gro_receive callbacks this packet already went through */
 	u8 recursion_counter:4;
 
-	/* 3 bit hole */
+	/* Used in GRE, set in fou/gue_gro_receive */
+	u8	is_fou:1;
+
+	/* 2 bit hole */
 
 	/* used to support CHECKSUM_COMPLETE for tunneling protocols */
 	__wsum	csum;
@@ -3302,7 +3310,7 @@ static inline u32 netif_msg_init(int debug_value, int default_msg_enable_bits)
 	if (debug_value == 0)	/* no output */
 		return 0;
 	/* set low N bits */
-	return (1 << debug_value) - 1;
+	return (1U << debug_value) - 1;
 }
 
 static inline void __netif_tx_lock(struct netdev_queue *txq, int cpu)
@@ -3424,6 +3432,7 @@ static inline void netif_tx_disable(struct net_device *dev)
 
 	local_bh_disable();
 	cpu = smp_processor_id();
+	spin_lock(&dev->tx_global_lock);
 	for (i = 0; i < dev->num_tx_queues; i++) {
 		struct netdev_queue *txq = netdev_get_tx_queue(dev, i);
 
@@ -3431,6 +3440,7 @@ static inline void netif_tx_disable(struct net_device *dev)
 		netif_tx_stop_queue(txq);
 		__netif_tx_unlock(txq);
 	}
+	spin_unlock(&dev->tx_global_lock);
 	local_bh_enable();
 }
 
