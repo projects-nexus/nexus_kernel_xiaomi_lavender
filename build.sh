@@ -11,7 +11,7 @@ KERNEL_DIR="$(pwd)"
 ZIPNAME="Nexus-EAS"
 
 # Specify compiler ( eva , azure , proton , arter , aosp & atom-x )
-COMPILER=atom-x
+COMPILER=azure
 
 # Device Name and Model
 MODEL=Redmi Note 7
