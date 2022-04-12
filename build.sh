@@ -30,6 +30,21 @@ fi
 # Kernel Defconfig
 DEFCONFIG=lavender-perf_defconfig
 
+# Optimizations
+LTO=1
+if [ $LTO = "1" ]; then
+echo "CONFIG_THIN_ARCHIVES=y
+CONFIG_LD_DEAD_CODE_DATA_ELIMINATION=y
+CONFIG_LTO=y
+CONFIG_ARCH_SUPPORTS_LTO_CLANG=y
+CONFIG_ARCH_SUPPORTS_THINLTO=y
+CONFIG_THINLTO=y
+# CONFIG_LTO_NONE is not set
+CONFIG_LTO_CLANG=y
+CONFIG_LLVM_POLLY=y
+CONFIG_CRYPTO_AES_ARM64=y" >> arch/arm64/configs/lavender-perf_defconfig
+fi
+
 # Linker
 LINKER=ld.lld
 
