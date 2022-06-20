@@ -1616,7 +1616,9 @@ static int msm_gfx_ldo_probe(struct platform_device *pdev)
 		return rc;
 	}
 
+#ifdef CONFIG_DEBUG_FS
 	msm_gfx_ldo_debugfs_init(ldo_vreg);
+#endif
 
 	return 0;
 }
