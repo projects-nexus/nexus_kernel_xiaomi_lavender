@@ -11,7 +11,7 @@ KERNEL_DIR="$(pwd)"
 ZIPNAME="Nexus-EAS"
 
 # Specify compiler ( eva , azure , proton , arter , aosp & nexus )
-COMPILER=nexus
+COMPILER=aosp
 
 # Device Name and Model
 MODEL=Redmi Note 7
@@ -83,8 +83,8 @@ function clone() {
 		git clone --depth=1  https://gitlab.com/Project-Nexus/nexus-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "aosp" ]; then
-		post_msg " Cloning Aosp Clang 14.0.2 ToolChain "
-		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r445002.git -b 12.0 aosp-clang
+		post_msg " Cloning Aosp Clang 14.0.3 ToolChain "
+		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r450784.git -b 12.1 aosp-clang
                 git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
                 git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
                 PATH="${KERNEL_DIR}/aosp-clang/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
@@ -100,7 +100,7 @@ function clone() {
 		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
         fi
         # Clone AnyKernel3
-		git clone --depth=1 https://github.com/Projects-aRise/AnyKernel3 AnyKernel3
+		git clone --depth=1 https://github.com/projects-nexus/AnyKernel3 AnyKernel3
 }
 ##------------------------------------------------------##
 
