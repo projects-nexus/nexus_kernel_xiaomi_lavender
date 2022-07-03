@@ -49,3 +49,21 @@ steps:
    commands:
      - git apply QTI_HAPTICS.p
      - bash build.sh --qti
+
+---
+clone:
+  depth: 1
+kind: pipeline
+name : A12-Qti-Old
+version: Nexus-A12-QTI-OLD
+steps: 
+ - name: Nexus
+   image: panchajanya1999/archlinux:latest
+   environment:
+     token:
+       from_secret: token
+     chat_id:
+       from_secret: chat_id
+   commands:
+     - git apply a12.p
+     - bash build.sh --a12-qti
