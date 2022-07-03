@@ -11,7 +11,7 @@ KERNEL_DIR="$(pwd)"
 ZIPNAME="Nexus-EAS"
 
 # Specify compiler ( eva , azure , proton , arter , aosp & nexus )
-COMPILER=aosp
+COMPILER=nexus
 
 # Device Name and Model
 MODEL=Redmi Note 7
@@ -82,7 +82,7 @@ function clone() {
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "nexus" ]; then
 		post_msg " Cloning Nexus Clang ToolChain "
-		git clone --depth=1  https://gitlab.com/Project-Nexus/nexus-clang.git clang
+		git clone --depth=1  https://gitlab.com/Project-Nexus/nexus-clang.git -b nexus-15 clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "aosp" ]; then
 		post_msg " Cloning Aosp Clang 14.0.3 ToolChain "
