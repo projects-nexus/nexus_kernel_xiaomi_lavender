@@ -20,6 +20,8 @@ DEVICE=lavender
 # Specify Version
 if [ "$1" = "--qti" ]; then
 VERSION=Qti-Old
+elif [ "$1" = "--a12-qti" ]; then
+VERSION=A12-Qti-Old
 elif [ "$1" = "--old" ]; then
 VERSION=Old
 elif [ "$1" = "--new" ]; then
