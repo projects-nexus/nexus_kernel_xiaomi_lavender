@@ -65,5 +65,6 @@ steps:
      chat_id:
        from_secret: chat_id
    commands:
+     - git apply QTI_HAPTICS.p
      - git apply a12.p
      - bash build.sh --a12-qti
