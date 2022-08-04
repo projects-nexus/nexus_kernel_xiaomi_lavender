@@ -8,7 +8,7 @@
 KERNEL_DIR="$(pwd)"
 
 # Zip Name
-ZIPNAME="Nexus-EAS"
+ZIPNAME="MRMD-EAS"
 
 # Specify compiler ( eva , azure , proton , arter , aosp & nexus )
 COMPILER=nexus
@@ -117,8 +117,8 @@ function exports() {
     export ARCH=arm64
     export SUBARCH=arm64
     export LOCALVERSION="-${VERSION}"
-    export KBUILD_BUILD_HOST=ArchLinux
-    export KBUILD_BUILD_USER="ImPrashantt"
+    export KBUILD_BUILD_HOST=MRMDprjkt
+    export KBUILD_BUILD_USER="Fbrichy"
     export KBUILD_BUILD_VERSION=$DRONE_BUILD_NUMBER
     export CI_BRANCH=$DRONE_BRANCH
     export PROCS=$(nproc --all)
