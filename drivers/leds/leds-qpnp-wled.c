@@ -572,11 +572,7 @@ static int qpnp_wled_set_level(struct qpnp_wled *wled, int level)
 {
 	int i, rc;
 	u8 reg;
-#ifdef CONFIG_MACH_LONGCHEER
-	u16 low_limit = WLED_MAX_LEVEL_4095 * 1 / 1000;
-#else
 	u16 low_limit = WLED_MAX_LEVEL_4095 * 4 / 1000;
-#endif
 
 	/* WLED's lower limit of operation is 0.4% */
 	if (level > 0 && level < low_limit)
@@ -1521,14 +1517,12 @@ static irqreturn_t qpnp_wled_ovp_irq_handler(int irq, void *_wled)
 			QPNP_WLED_FAULT_STATUS(wled->ctrl_base), &fault_sts);
 	if (rc < 0) {
 		pr_err("Error in reading WLED_FAULT_STATUS rc=%d\n", rc);
-		goto END;
+		return IRQ_HANDLED;
 	}
 
-#ifndef CONFIG_MACH_LONGCHEER
 	if (fault_sts & (QPNP_WLED_OVP_FAULT_BIT | QPNP_WLED_ILIM_FAULT_BIT))
 		pr_err("WLED OVP fault detected, int_sts=%x fault_sts= %x\n",
 			int_sts, fault_sts);
-#endif
 
 	if (fault_sts & QPNP_WLED_OVP_FAULT_BIT) {
 		if (wled->auto_calib_enabled && !wled->auto_calib_done) {
@@ -1557,9 +1551,6 @@ static irqreturn_t qpnp_wled_ovp_irq_handler(int irq, void *_wled)
 		}
 	}
 
-END:
-	disable_irq_nosync(wled->ovp_irq);
-	wled->ovp_irq_disabled = true;
 	return IRQ_HANDLED;
 }
 
