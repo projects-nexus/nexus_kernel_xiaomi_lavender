@@ -67,7 +67,7 @@ function clone() {
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "nexus" ]; then
 		post_msg " Cloning Nexus Clang ToolChain "
-		git clone --depth=1  https://gitlab.com/Project-Nexus/nexus-clang.git clang
+		git clone --depth=1  -b nexus-15 https://gitlab.com/Project-Nexus/nexus-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "aosp" ]; then
 		post_msg " Cloning Aosp Clang 14.0.2 ToolChain "
@@ -87,7 +87,7 @@ function clone() {
 		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
         fi
         # Clone AnyKernel3
-		git clone --depth=1 https://github.com/Projects-aRise/AnyKernel3 AnyKernel3
+		git clone --depth=1 https://github.com/projects-nexus/AnyKernel3 AnyKernel3
 }
 ##------------------------------------------------------##
 
