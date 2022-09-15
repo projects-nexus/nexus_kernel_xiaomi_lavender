@@ -47,8 +47,8 @@ steps:
      chat_id:
        from_secret: chat_id
    commands:
-     - /noclone3 git apply QTI_HAPTICS.p
-     - bash build.sh --qti
+     - git apply QTI_HAPTICS.p
+     - /noclone3 bash build.sh --qti
 
 ---
 clone:
