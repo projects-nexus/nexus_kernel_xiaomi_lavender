@@ -387,6 +387,10 @@ static inline struct bpf_prog *bpf_prog_get_type_path(const char *name,
 }
 #endif /* CONFIG_BPF_SYSCALL */
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+
 /* verifier prototypes for helper functions called from eBPF programs */
 extern const struct bpf_func_proto bpf_map_lookup_elem_proto;
 extern const struct bpf_func_proto bpf_map_update_elem_proto;
