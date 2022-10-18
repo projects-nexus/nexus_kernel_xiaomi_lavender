@@ -6,14 +6,14 @@ name : OldCam
 version: Nexus-OLD
 steps:
  - name: Nexus
-   image: panchajanya1999/archlinux:latest
+   image: nexgang/ubuntu:latest
    environment:
      token:
        from_secret: token
      chat_id:
        from_secret: chat_id
    commands:
-     - bash build.sh --old
+     - /noclone3 bash build.sh --old
 
 ---
 clone:
@@ -23,14 +23,14 @@ name : NewCam
 version: Nexus-NEW
 steps:
  - name: Nexus
-   image: panchajanya1999/archlinux:latest
+   image: nexgang/ubuntu:latest
    environment:
      token:
        from_secret: token
      chat_id:
        from_secret: chat_id
    commands:
-     - bash build.sh --new
+     - /noclone3 bash build.sh --new
 
 ---
 clone:
@@ -40,7 +40,7 @@ name : Qti-Old
 version: Nexus-QTI-OLD
 steps:
  - name: Nexus
-   image: panchajanya1999/archlinux:latest
+   image: nexgang/ubuntu:latest
    environment:
      token:
        from_secret: token
@@ -48,7 +48,7 @@ steps:
        from_secret: chat_id
    commands:
      - git apply QTI_HAPTICS.p
-     - bash build.sh --qti
+     - /noclone3 bash build.sh --qti
 
 ---
 clone:
@@ -58,7 +58,7 @@ name : A12-Qti-Old
 version: Nexus-A12-QTI-OLD
 steps: 
  - name: Nexus
-   image: panchajanya1999/archlinux:latest
+   image: nexgang/ubuntu:latest
    environment:
      token:
        from_secret: token
@@ -67,4 +67,4 @@ steps:
    commands:
      - git apply QTI_HAPTICS.p
      - git apply a12.p
-     - bash build.sh --a12-qti
+     - /noclone3 bash build.sh --a12-qti
