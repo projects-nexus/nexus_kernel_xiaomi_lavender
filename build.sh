@@ -10,8 +10,8 @@ KERNEL_DIR="$(pwd)"
 # Zip Name
 ZIPNAME="Nexus-EAS"
 
-# Specify compiler ( eva , azure , proton , arter , aosp & atom-x )
-COMPILER=azure
+# Specify compiler ( eva , azure , proton , arter , aosp & nexus )
+COMPILER=nexus
 
 # Device Name and Model
 MODEL=Redmi Note 7
@@ -20,6 +20,8 @@ DEVICE=lavender
 # Specify Version
 if [ "$1" = "--qti" ]; then
 VERSION=Qti-Old
+elif [ "$1" = "--a12-qti" ]; then
+VERSION=A12-Qti-Old
 elif [ "$1" = "--old" ]; then
 VERSION=Old
 elif [ "$1" = "--new" ]; then
@@ -57,19 +59,19 @@ function clone() {
     # Clone Toolchain
         if [ $COMPILER = "azure" ]; then
                 post_msg " Cloning Azure Clang ToolChain "
-		git clone --depth=1  https://gitlab.com/Panchajanya1999/azure-clang.git clang
+		git clone --depth=1  https://gitlab.com/ImSpiDy/azure-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "proton" ]; then
 		post_msg " Cloning Proton Clang ToolChain "
 		git clone --depth=1  https://github.com/kdrag0n/proton-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
-		elif [ $COMPILER = "atom-x" ]; then
-		post_msg " Cloning Atom-X Clang ToolChain "
-		git clone --depth=1  https://gitlab.com/ElectroPerf/atom-x-clang.git clang
+		elif [ $COMPILER = "nexus" ]; then
+		post_msg " Cloning Nexus Clang ToolChain "
+		git clone --depth=1 -b nexus-14  https://gitlab.com/Project-Nexus/nexus-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "aosp" ]; then
-		post_msg " Cloning Aosp Clang 13.0.3 ToolChain "
-		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r433403b.git -b 12.0 aosp-clang
+		post_msg " Cloning Aosp Clang 14.0.2 ToolChain "
+		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r445002.git -b 12.0 aosp-clang
                 git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
                 git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
                 PATH="${KERNEL_DIR}/aosp-clang/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
@@ -100,7 +102,7 @@ function exports() {
     export ARCH=arm64
     export SUBARCH=arm64
     export LOCALVERSION="-${VERSION}"
-    export KBUILD_BUILD_HOST=aRise
+    export KBUILD_BUILD_HOST=ArchLinux
     export KBUILD_BUILD_USER="ImPrashantt"
     export KBUILD_BUILD_VERSION=$DRONE_BUILD_NUMBER
     export CI_BRANCH=$DRONE_BRANCH
