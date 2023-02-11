@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright © 2016, STMicroelectronics International N.V.
+ * Copyright Â© 2016, STMicroelectronics International N.V.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -480,10 +480,10 @@ VL53L0_Error VL53L0_DataInit(VL53L0_DEV Dev)
                 VL53L0_CHECKENABLE_SIGNAL_RATE_PRE_RANGE, 0);
 
 	/* Limit default values */
-	if (Status == VL53L0_ERROR_NONE) {
-		Status = VL53L0_SetLimitCheckValue(Dev,
-			VL53L0_CHECKENABLE_SIGMA_FINAL_RANGE,
-				(FixPoint1616_t)(18 * 65536));
+    if (Status == VL53L0_ERROR_NONE) {
+	Status = VL53L0_SetLimitCheckValue(Dev,
+		VL53L0_CHECKENABLE_SIGMA_FINAL_RANGE,
+			(FixPoint1616_t)(18 * 65536));
 	}
 	if (Status == VL53L0_ERROR_NONE) {
 		Status = VL53L0_SetLimitCheckValue(Dev,
