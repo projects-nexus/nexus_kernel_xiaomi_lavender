@@ -33,7 +33,7 @@ fi
 DEFCONFIG=lavender_defconfig
 
 # Optimizations
-LTO=0
+LTO=1
 if [ $LTO = "1" ]; then
 echo "CONFIG_THIN_ARCHIVES=y
 CONFIG_LD_DEAD_CODE_DATA_ELIMINATION=y
@@ -46,6 +46,9 @@ CONFIG_LTO_CLANG=y
 CONFIG_LLVM_POLLY=y
 CONFIG_CRYPTO_AES_ARM64=y" >> arch/arm64/configs/lavender-perf_defconfig
 fi
+
+# Linker
+LINKER=ld.lld
 
 # Path
 IMAGE=$(pwd)/out/arch/arm64/boot/Image.gz-dtb
@@ -155,6 +158,7 @@ function compile() {
 				CC=clang \
 				CROSS_COMPILE=aarch64-linux-gnu- \
 				CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+				LD=${LINKER} \
 				AR=llvm-ar \
 				NM=llvm-nm \
 				OBJCOPY=llvm-objcopy \
@@ -168,6 +172,7 @@ function compile() {
 				ARCH=arm64 \
 				CROSS_COMPILE_ARM32=arm-eabi- \
 				CROSS_COMPILE=aarch64-elf- \
+				LD=aarch64-elf-${LINKER} \
 				AR=llvm-ar \
 				NM=llvm-nm \
 				OBJCOPY=llvm-objcopy \
@@ -182,6 +187,7 @@ function compile() {
 				CLANG_TRIPLE=aarch64-linux-gnu- \
 				CROSS_COMPILE=aarch64-linux-android- \
 				CROSS_COMPILE_ARM32=arm-linux-androideabi- \
+				LD=${LINKER} \
 				AR=llvm-ar \
 				NM=llvm-nm \
 				OBJCOPY=llvm-objcopy \
