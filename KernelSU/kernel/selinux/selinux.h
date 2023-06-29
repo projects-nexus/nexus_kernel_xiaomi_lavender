@@ -2,8 +2,13 @@
 #define __KSU_H_SELINUX
 
 #include "linux/types.h"
+#include "linux/version.h"
 
-void setup_selinux();
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)) || defined(KSU_COMPAT_HAS_SELINUX_STATE)
+#define KSU_COMPAT_USE_SELINUX_STATE
+#endif
+
+void setup_selinux(const char *);
 
 void setenforce(bool);
 

@@ -1,38 +1,64 @@
+#[allow(clippy::wildcard_imports)]
+use crate::utils::*;
+use crate::{
+    assets, defs, mount,
+    restorecon::{restore_syscon, setsyscon},
+    sepolicy,
+};
+
+use anyhow::{anyhow, bail, ensure, Context, Result};
 use const_format::concatcp;
+use is_executable::is_executable;
 use java_properties::PropertiesIter;
 use log::{info, warn};
 use std::{
     collections::HashMap,
-    fs::{create_dir_all, remove_dir_all, File, OpenOptions},
-    io::{Cursor, Write},
-    os::unix::{prelude::PermissionsExt, process::CommandExt},
+    env::var as env_var,
+    fs::{remove_dir_all, set_permissions, File, Permissions},
+    io::Cursor,
     path::{Path, PathBuf},
     process::{Command, Stdio},
     str::FromStr,
 };
-use subprocess::Exec;
-use zip_extensions::*;
+use zip_extensions::zip_extract_file_to_memory;
 
-use crate::{defs, restorecon};
-use crate::{restorecon::setsyscon, utils::*};
+#[cfg(unix)]
+use std::os::unix::{prelude::PermissionsExt, process::CommandExt};
 
-use anyhow::{bail, ensure, Context, Result};
-
-const UTIL_FUNCTIONS: &str = include_str!("./installer.sh");
-const INSTALL_MODULE_SCRIPT: &str =
-    concatcp!(UTIL_FUNCTIONS, "\n", "install_module", "\n", "exit 0", "\n");
+const INSTALLER_CONTENT: &str = include_str!("./installer.sh");
+const INSTALL_MODULE_SCRIPT: &str = concatcp!(
+    INSTALLER_CONTENT,
+    "\n",
+    "install_module",
+    "\n",
+    "exit 0",
+    "\n"
+);
 
 fn exec_install_script(module_file: &str) -> Result<()> {
     let realpath = std::fs::canonicalize(module_file)
-        .with_context(|| format!("realpath: {} failed", module_file))?;
+        .with_context(|| format!("realpath: {module_file} failed"))?;
 
-    let result = Command::new("/system/bin/sh")
-        .args(["-c", INSTALL_MODULE_SCRIPT])
+    let result = Command::new(assets::BUSYBOX_PATH)
+        .args(["sh", "-c", INSTALL_MODULE_SCRIPT])
+        .env("ASH_STANDALONE", "1")
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                env_var("PATH").unwrap(),
+                defs::BINARY_DIR.trim_end_matches('/')
+            ),
+        )
+        .env("KSU", "true")
+        .env("KSU_KERNEL_VER_CODE", crate::ksu::get_version().to_string())
+        .env("KSU_VER", defs::VERSION_NAME)
+        .env("KSU_VER_CODE", defs::VERSION_CODE)
         .env("OUTFD", "1")
         .env("ZIPFILE", realpath)
         .stderr(Stdio::null())
         .status()?;
-    ensure!(result.success(), "install module script failed!");
+    ensure!(result.success(), "Failed to install module script");
     Ok(())
 }
 
@@ -41,46 +67,32 @@ fn exec_install_script(module_file: &str) -> Result<()> {
 // if someone(such as the module) install a module before the boot_completed
 // then it may cause some problems, just forbid it
 fn ensure_boot_completed() -> Result<()> {
-    // ensure getprop sys.boot_completed = 1
-    let output = Command::new("getprop")
-        .arg("sys.boot_completed")
-        .stdout(Stdio::piped())
-        .output()?;
-    let output = String::from_utf8_lossy(&output.stdout);
-    if output.trim() != "1" {
+    // ensure getprop sys.boot_completed == 1
+    if getprop("sys.boot_completed").as_deref() != Some("1") {
         bail!("Android is Booting!");
     }
     Ok(())
 }
 
 fn mark_update() -> Result<()> {
-    let update_file = Path::new(defs::WORKING_DIR).join(defs::UPDATE_FILE_NAME);
-    if update_file.exists() {
-        return Ok(());
-    }
-
-    std::fs::File::create(update_file)?;
-    Ok(())
+    ensure_file_exists(concatcp!(defs::WORKING_DIR, defs::UPDATE_FILE_NAME))
 }
 
 fn mark_module_state(module: &str, flag_file: &str, create_or_delete: bool) -> Result<()> {
     let module_state_file = Path::new(defs::MODULE_DIR).join(module).join(flag_file);
     if create_or_delete {
-        if module_state_file.exists() {
-            return Ok(());
-        }
-        std::fs::File::create(module_state_file)?;
+        ensure_file_exists(module_state_file)
     } else {
-        if !module_state_file.exists() {
-            return Ok(());
+        if module_state_file.exists() {
+            std::fs::remove_file(module_state_file)?;
         }
-        std::fs::remove_file(module_state_file)?;
+        Ok(())
     }
-
-    Ok(())
 }
 
 fn get_minimal_image_size(img: &str) -> Result<u64> {
+    check_image(img)?;
+
     let output = Command::new("resize2fs")
         .args(["-P", img])
         .stdout(Stdio::piped())
@@ -90,8 +102,8 @@ fn get_minimal_image_size(img: &str) -> Result<u64> {
     println!("- {}", output.trim());
     let regex = regex::Regex::new(r"filesystem: (\d+)")?;
     let result = regex
-        .captures(output.as_ref())
-        .ok_or_else(|| anyhow::anyhow!("regex not match"))?;
+        .captures(&output)
+        .ok_or(anyhow::anyhow!("regex not match"))?;
     let result = &result[1];
     let result = u64::from_str(result)?;
     Ok(result)
@@ -103,7 +115,7 @@ fn check_image(img: &str) -> Result<()> {
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status()
-        .with_context(|| format!("Failed exec e2fsck {}", img))?;
+        .with_context(|| format!("Failed to exec e2fsck {img}"))?;
     let code = result.code();
     // 0 or 1 is ok
     // 0: no error
@@ -111,15 +123,15 @@ fn check_image(img: &str) -> Result<()> {
     // https://man7.org/linux/man-pages/man8/e2fsck.8.html
     ensure!(
         code == Some(0) || code == Some(1),
-        "check image e2fsck exec failed: {}",
+        "Failed to check image, e2fsck exit code: {}",
         code.unwrap_or(-1)
     );
     Ok(())
 }
 
 fn grow_image_size(img: &str, extra_size: u64) -> Result<()> {
-    let minimal_size = get_minimal_image_size(img)?;
-    let target_size = minimal_size + extra_size;
+    let minimal_size = get_minimal_image_size(img)?; // the minimal size is in KB
+    let target_size = minimal_size * 1024 + extra_size;
 
     // check image
     check_image(img)?;
@@ -128,40 +140,84 @@ fn grow_image_size(img: &str, extra_size: u64) -> Result<()> {
         "- Target image size: {}",
         humansize::format_size(target_size, humansize::DECIMAL)
     );
-    let target_size = target_size / 1024 + 1;
+    let target_size = target_size / 1024 + 1024;
 
-    let result = Exec::shell(format!("resize2fs {} {}K", img, target_size))
-        .stdout(subprocess::NullFile)
-        .stderr(subprocess::Redirection::Merge)
-        .join()
-        .with_context(|| format!("Failed to resize2fs {}", img))?;
-    ensure!(result.success(), "resize2fs exec failed.");
+    let result = Command::new("resize2fs")
+        .args([img, &format!("{target_size}K")])
+        .stdout(Stdio::null())
+        .status()
+        .with_context(|| format!("Failed to exec resize2fs {img}"))?;
+    ensure!(result.success(), "Failed to resize2fs: {}", result);
+
+    check_image(img)?;
 
     Ok(())
 }
 
-fn switch_cgroup(grp: &str, pid: u32) {
-    let path = Path::new(grp).join("cgroup.procs");
-    if !path.exists() {
-        return;
-    }
+pub fn load_sepolicy_rule() -> Result<()> {
+    let modules_dir = Path::new(defs::MODULE_DIR);
+    let dir = std::fs::read_dir(modules_dir)?;
+    for entry in dir.flatten() {
+        let path = entry.path();
+        let disabled = path.join(defs::DISABLE_FILE_NAME);
+        if disabled.exists() {
+            info!("{} is disabled, skip", path.display());
+            continue;
+        }
 
-    let fp = OpenOptions::new().append(true).open(path);
-    if let Ok(mut fp) = fp {
-        let _ = writeln!(fp, "{}", pid);
-    }
-}
+        let rule_file = path.join("sepolicy.rule");
+        if !rule_file.exists() {
+            continue;
+        }
+        info!("load policy: {}", &rule_file.display());
 
-fn switch_cgroups() -> Result<()> {
-    let pid = std::process::id();
-    switch_cgroup("/acct", pid);
-    switch_cgroup("/dev/cg2_bpf", pid);
-    switch_cgroup("/sys/fs/cgroup", pid);
-    if getprop("ro.config.per_app_memcg")? != "false" {
-        switch_cgroup("/dev/memcg/apps", pid);
+        if sepolicy::apply_file(&rule_file).is_err() {
+            warn!("Failed to load sepolicy.rule for {}", &rule_file.display());
+        }
     }
 
     Ok(())
+}
+
+fn exec_script<T: AsRef<Path>>(path: T, wait: bool) -> Result<()> {
+    info!("exec {}", path.as_ref().display());
+
+    let mut command = &mut Command::new(assets::BUSYBOX_PATH);
+    #[cfg(unix)]
+    {
+        command = command.process_group(0);
+        command = unsafe {
+            command.pre_exec(|| {
+                // ignore the error?
+                switch_cgroups();
+                Ok(())
+            })
+        };
+    }
+    command = command
+        .current_dir(path.as_ref().parent().unwrap())
+        .arg("sh")
+        .arg(path.as_ref())
+        .env("ASH_STANDALONE", "1")
+        .env("KSU", "true")
+        .env("KSU_KERNEL_VER_CODE", crate::ksu::get_version().to_string())
+        .env("KSU_VER_CODE", defs::VERSION_CODE)
+        .env("KSU_VER", defs::VERSION_NAME)
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                env_var("PATH").unwrap(),
+                defs::BINARY_DIR.trim_end_matches('/')
+            ),
+        );
+
+    let result = if wait {
+        command.status().map(|_| ())
+    } else {
+        command.spawn().map(|_| ())
+    };
+    result.map_err(|err| anyhow!("Failed to exec {}: {}", path.as_ref().display(), err))
 }
 
 /// execute every modules' post-fs-data.sh
@@ -172,7 +228,7 @@ pub fn exec_post_fs_data() -> Result<()> {
         let path = entry.path();
         let disabled = path.join(defs::DISABLE_FILE_NAME);
         if disabled.exists() {
-            println!("{} is disabled, skip", path.display());
+            warn!("{} is disabled, skip", path.display());
             continue;
         }
 
@@ -180,23 +236,30 @@ pub fn exec_post_fs_data() -> Result<()> {
         if !post_fs_data.exists() {
             continue;
         }
-        println!("exec {} post-fs-data.sh", path.display());
 
-        // pre_exec is unsafe!
-        unsafe {
-            Command::new("/system/bin/sh")
-                .arg(&post_fs_data)
-                .process_group(0)
-                .pre_exec(|| {
-                    // ignore the error?
-                    let _ = switch_cgroups();
-                    Ok(())
-                })
-                .current_dir(path)
-                .env("KSU", "true")
-                .status()
-                .with_context(|| format!("Failed to exec {}", post_fs_data.display()))?;
+        exec_script(&post_fs_data, true)?;
+    }
+
+    Ok(())
+}
+
+pub fn exec_common_scripts(dir: &str, wait: bool) -> Result<()> {
+    let script_dir = Path::new(defs::ADB_DIR).join(dir);
+    if !script_dir.exists() {
+        info!("{} not exists, skip", script_dir.display());
+        return Ok(());
+    }
+
+    let dir = std::fs::read_dir(&script_dir)?;
+    for entry in dir.flatten() {
+        let path = entry.path();
+
+        if !is_executable(&path) {
+            warn!("{} is not executable, skip", path.display());
+            continue;
         }
+
+        exec_script(path, wait)?;
     }
 
     Ok(())
@@ -210,7 +273,7 @@ pub fn exec_services() -> Result<()> {
         let path = entry.path();
         let disabled = path.join(defs::DISABLE_FILE_NAME);
         if disabled.exists() {
-            println!("{} is disabled, skip", path.display());
+            warn!("{} is disabled, skip", path.display());
             continue;
         }
 
@@ -218,50 +281,21 @@ pub fn exec_services() -> Result<()> {
         if !service.exists() {
             continue;
         }
-        println!("exec {} service.sh", path.display());
 
-        // pre_exec is unsafe!
-        unsafe {
-            Command::new("/system/bin/sh")
-                .arg(&service)
-                .process_group(0)
-                .pre_exec(|| {
-                    // ignore the error?
-                    let _ = switch_cgroups();
-                    Ok(())
-                })
-                .current_dir(path)
-                .env("KSU", "true")
-                .spawn() // don't wait
-                .with_context(|| format!("Failed to exec {}", service.display()))?;
-        }
+        exec_script(&service, false)?;
     }
 
-    Ok(())
-}
-
-const RESETPROP: &[u8] = include_bytes!("./resetprop");
-const RESETPROP_PATH: &str = concatcp!(defs::WORKING_DIR, "/resetprop");
-
-fn ensure_resetprop() -> Result<()> {
-    if Path::new(RESETPROP_PATH).exists() {
-        return Ok(());
-    }
-    std::fs::write(RESETPROP_PATH, RESETPROP)?;
-    std::fs::set_permissions(RESETPROP_PATH, std::fs::Permissions::from_mode(0o755))?;
     Ok(())
 }
 
 pub fn load_system_prop() -> Result<()> {
-    ensure_resetprop()?;
-
     let modules_dir = Path::new(defs::MODULE_DIR);
     let dir = std::fs::read_dir(modules_dir)?;
     for entry in dir.flatten() {
         let path = entry.path();
         let disabled = path.join(defs::DISABLE_FILE_NAME);
         if disabled.exists() {
-            println!("{} is disabled, skip", path.display());
+            info!("{} is disabled, skip", path.display());
             continue;
         }
 
@@ -269,10 +303,10 @@ pub fn load_system_prop() -> Result<()> {
         if !system_prop.exists() {
             continue;
         }
-        println!("load {} system.prop", path.display());
+        info!("load {} system.prop", path.display());
 
-        // resetprop --file system.prop
-        Command::new(RESETPROP_PATH)
+        // resetprop -n --file system.prop
+        Command::new(assets::RESETPROP_PATH)
             .arg("-n")
             .arg("--file")
             .arg(&system_prop)
@@ -283,27 +317,23 @@ pub fn load_system_prop() -> Result<()> {
     Ok(())
 }
 
-pub fn install_module(zip: String) -> Result<()> {
+fn _install_module(zip: &str) -> Result<()> {
     ensure_boot_completed()?;
 
     // print banner
     println!(include_str!("banner"));
 
-    // first check if workding dir is usable
-    let working_dir = Path::new(defs::WORKING_DIR);
-    if !working_dir.exists() {
-        create_dir_all(working_dir)?;
-    }
+    assets::ensure_binaries().with_context(|| "Failed to extract assets")?;
 
-    ensure!(
-        working_dir.is_dir(),
-        "working dir exists but it is not a regular directory!"
-    );
+    // first check if workding dir is usable
+    ensure_dir_exists(defs::WORKING_DIR).with_context(|| "Failed to create working dir")?;
+    ensure_dir_exists(defs::BINARY_DIR).with_context(|| "Failed to create bin dir")?;
 
     // read the module_id from zip, if faild if will return early.
     let mut buffer: Vec<u8> = Vec::new();
     let entry_path = PathBuf::from_str("module.prop")?;
-    let zip_path = PathBuf::from_str(&zip)?;
+    let zip_path = PathBuf::from_str(zip)?;
+    let zip_path = zip_path.canonicalize()?;
     zip_extract_file_to_memory(&zip_path, &entry_path, &mut buffer)?;
 
     let mut module_prop = HashMap::new();
@@ -312,11 +342,11 @@ pub fn install_module(zip: String) -> Result<()> {
             module_prop.insert(k, v);
         },
     )?;
+    info!("module prop: {:?}", module_prop);
 
     let Some(module_id) = module_prop.get("id") else {
         bail!("module id not found in module.prop!");
     };
-    info!("module id: {}", module_id);
 
     let modules_img = Path::new(defs::MODULE_IMG);
     let modules_update_img = Path::new(defs::MODULE_UPDATE_IMG);
@@ -332,10 +362,18 @@ pub fn install_module(zip: String) -> Result<()> {
         std::fs::remove_file(tmp_module_path)?;
     }
 
-    let default_reserve_size = 64 * 1024 * 1024;
-    let zip_uncompressed_size = get_zip_uncompressed_size(&zip)?;
+    let default_reserve_size = 256 * 1024 * 1024;
+    let zip_uncompressed_size = get_zip_uncompressed_size(zip)?;
     let grow_size = default_reserve_size + zip_uncompressed_size;
-    let grow_size_per_m = grow_size / 1024 / 1024 + 1;
+
+    info!(
+        "zip uncompressed size: {}",
+        humansize::format_size(zip_uncompressed_size, humansize::DECIMAL)
+    );
+    info!(
+        "grow size: {}",
+        humansize::format_size(grow_size, humansize::DECIMAL)
+    );
 
     println!("- Preparing image");
     println!(
@@ -346,25 +384,27 @@ pub fn install_module(zip: String) -> Result<()> {
     if !modules_img_exist && !modules_update_img_exist {
         // if no modules and modules_update, it is brand new installation, we should create a new img
         // create a tmp module img and mount it to modules_update
-        let result = Exec::shell(format!(
-            "dd if=/dev/zero of={} bs=1M count={}",
-            tmp_module_img, grow_size_per_m
-        ))
-        .stdout(subprocess::NullFile)
-        .stderr(subprocess::Redirection::Merge)
-        .join()?;
-        ensure!(result.success(), "create ext4 image failed!");
+        info!("Creating brand new module image");
+        File::create(tmp_module_img)
+            .context("Failed to create ext4 image file")?
+            .set_len(grow_size)
+            .context("Failed to extend ext4 image")?;
 
         // format the img to ext4 filesystem
-        let result = Exec::shell(format!("mkfs.ext4 {}", tmp_module_img))
-            .stdout(subprocess::NullFile)
-            .stderr(subprocess::Redirection::Merge)
-            .join()?;
-        ensure!(result.success(), "format ext4 image failed!");
+        let result = Command::new("mkfs.ext4")
+            .arg(tmp_module_img)
+            .stdout(Stdio::null())
+            .output()?;
+        ensure!(
+            result.status.success(),
+            "Failed to format ext4 image: {}",
+            String::from_utf8(result.stderr).unwrap()
+        );
 
         check_image(tmp_module_img)?;
     } else if modules_update_img_exist {
         // modules_update.img exists, we should use it as tmp img
+        info!("Using existing modules_update.img as tmp image");
         std::fs::copy(modules_update_img, tmp_module_img).with_context(|| {
             format!(
                 "Failed to copy {} to {}",
@@ -376,6 +416,7 @@ pub fn install_module(zip: String) -> Result<()> {
         grow_image_size(tmp_module_img, grow_size)?;
     } else {
         // modules.img exists, we should use it as tmp img
+        info!("Using existing modules.img as tmp image");
         std::fs::copy(modules_img, tmp_module_img).with_context(|| {
             format!(
                 "Failed to copy {} to {}",
@@ -393,52 +434,59 @@ pub fn install_module(zip: String) -> Result<()> {
     // mount the modules_update.img to mountpoint
     println!("- Mounting image");
 
-    mount_image(tmp_module_img, module_update_tmp_dir)?;
+    let _dontdrop = mount::AutoMountExt4::try_new(tmp_module_img, module_update_tmp_dir, true)?;
+
+    info!("mounted {} to {}", tmp_module_img, module_update_tmp_dir);
 
     setsyscon(module_update_tmp_dir)?;
 
-    let result = {
-        let module_dir = format!("{}/{}", module_update_tmp_dir, module_id);
-        ensure_clean_dir(&module_dir)?;
-        info!("module dir: {}", module_dir);
+    let module_dir = format!("{module_update_tmp_dir}/{module_id}");
+    ensure_clean_dir(&module_dir)?;
+    info!("module dir: {}", module_dir);
 
-        // unzip the image and move it to modules_update/<id> dir
-        let file = File::open(&zip)?;
-        let mut archive = zip::ZipArchive::new(file)?;
-        archive.extract(&module_dir)?;
+    // unzip the image and move it to modules_update/<id> dir
+    let file = File::open(zip)?;
+    let mut archive = zip::ZipArchive::new(file)?;
+    archive.extract(&module_dir)?;
 
-        // set selinux for module/system dir
-        let mut module_system_dir = PathBuf::from(module_dir);
-        module_system_dir.push("system");
-        let module_system_dir = module_system_dir.as_path();
-        if module_system_dir.exists() {
-            let path = format!("{}", module_system_dir.display());
-            restorecon::restore_syscon(&path)?;
-        }
+    // set permission and selinux context for $MOD/system
+    let module_system_dir = PathBuf::from(module_dir).join("system");
+    if module_system_dir.exists() {
+        #[cfg(unix)]
+        set_permissions(&module_system_dir, Permissions::from_mode(0o755))?;
+        restore_syscon(&module_system_dir)?;
+    }
 
-        exec_install_script(&zip)
-    };
+    exec_install_script(zip)?;
 
-    // umount the modules_update.img
-    let _ = umount_dir(module_update_tmp_dir);
-
-    // remove modules_update dir, ignore the error
-    let _ = remove_dir_all(module_update_tmp_dir);
-
-    // return if exec script failed
-    result.with_context(|| format!("Failed to execute install script for {}", module_id))?;
-
+    info!("rename {tmp_module_img} to {}", defs::MODULE_UPDATE_IMG);
     // all done, rename the tmp image to modules_update.img
     if std::fs::rename(tmp_module_img, defs::MODULE_UPDATE_IMG).is_err() {
+        warn!("Rename image failed, try copy it.");
+        std::fs::copy(tmp_module_img, defs::MODULE_UPDATE_IMG)
+            .with_context(|| "Failed to copy image.".to_string())?;
         let _ = std::fs::remove_file(tmp_module_img);
     }
 
     mark_update()?;
 
+    info!("Module install successfully!");
+
     Ok(())
 }
 
-fn do_module_update<F>(update_dir: &str, id: &str, func: F) -> Result<()>
+pub fn install_module(zip: &str) -> Result<()> {
+    let result = _install_module(zip);
+    if let Err(ref e) = result {
+        // error happened, do some cleanup!
+        let _ = std::fs::remove_file(defs::MODULE_UPDATE_TMP_IMG);
+        let _ = mount::umount_dir(defs::MODULE_UPDATE_TMP_DIR);
+        println!("- Error: {e}");
+    }
+    result
+}
+
+fn update_module<F>(update_dir: &str, id: &str, func: F) -> Result<()>
 where
     F: Fn(&str, &str) -> Result<()>,
 {
@@ -469,28 +517,27 @@ where
     ensure_clean_dir(update_dir)?;
 
     // mount the modules_update img
-    mount_image(defs::MODULE_UPDATE_TMP_IMG, update_dir)?;
+    let _dontdrop = mount::AutoMountExt4::try_new(defs::MODULE_UPDATE_TMP_IMG, update_dir, true)?;
 
     // call the operation func
     let result = func(id, update_dir);
 
-    // umount modules_update.img
-    let _ = umount_dir(update_dir);
-    let _ = remove_dir_all(update_dir);
-
-    std::fs::rename(modules_update_tmp_img, defs::MODULE_UPDATE_IMG)?;
+    if let Err(e) = std::fs::rename(modules_update_tmp_img, defs::MODULE_UPDATE_IMG) {
+        warn!("Rename image failed: {e}, try copy it.");
+        std::fs::copy(modules_update_tmp_img, defs::MODULE_UPDATE_IMG)
+            .with_context(|| "Failed to copy image.".to_string())?;
+        let _ = std::fs::remove_file(modules_update_tmp_img);
+    }
 
     mark_update()?;
 
     result
 }
 
-pub fn uninstall_module(id: String) -> Result<()> {
-    do_module_update(defs::MODULE_UPDATE_TMP_DIR, &id, |mid, update_dir| {
+pub fn uninstall_module(id: &str) -> Result<()> {
+    update_module(defs::MODULE_UPDATE_TMP_DIR, id, |mid, update_dir| {
         let dir = Path::new(update_dir);
-        if !dir.exists() {
-            bail!("No module installed");
-        }
+        ensure!(dir.exists(), "No module installed");
 
         // iterate the modules_update dir, find the module to be removed
         let dir = std::fs::read_dir(dir)?;
@@ -509,30 +556,32 @@ pub fn uninstall_module(id: String) -> Result<()> {
                     }
                 })?;
             if module_id.eq(mid) {
+                let uninstall_script = path.join("uninstall.sh");
+                if uninstall_script.exists() {
+                    exec_script(uninstall_script, true)?;
+                }
                 remove_dir_all(path)?;
                 break;
             }
         }
 
         // santity check
-        let target_module_path = format!("{}/{}", update_dir, mid);
+        let target_module_path = format!("{update_dir}/{mid}");
         let target_module = Path::new(&target_module_path);
         if target_module.exists() {
             remove_dir_all(target_module)?;
         }
 
-        let _ = mark_module_state(&id, defs::REMOVE_FILE_NAME, true);
+        let _ = mark_module_state(id, defs::REMOVE_FILE_NAME, true);
 
         Ok(())
     })
 }
 
-fn do_enable_module(module_dir: &str, mid: &str, enable: bool) -> Result<()> {
-    let src_module_path = format!("{}/{}", module_dir, mid);
+fn _enable_module(module_dir: &str, mid: &str, enable: bool) -> Result<()> {
+    let src_module_path = format!("{module_dir}/{mid}");
     let src_module = Path::new(&src_module_path);
-    if !src_module.exists() {
-        bail!("module: {} not found!", mid);
-    }
+    ensure!(src_module.exists(), "module: {} not found!", mid);
 
     let disable_path = src_module.join(defs::DISABLE_FILE_NAME);
     if enable {
@@ -541,8 +590,8 @@ fn do_enable_module(module_dir: &str, mid: &str, enable: bool) -> Result<()> {
                 format!("Failed to remove disable file: {}", &disable_path.display())
             })?;
         }
-    } else if !disable_path.exists() {
-        std::fs::File::create(disable_path)?;
+    } else {
+        ensure_file_exists(disable_path)?;
     }
 
     let _ = mark_module_state(mid, defs::DISABLE_FILE_NAME, !enable);
@@ -550,19 +599,33 @@ fn do_enable_module(module_dir: &str, mid: &str, enable: bool) -> Result<()> {
     Ok(())
 }
 
-pub fn enable_module(id: String) -> Result<()> {
-    do_module_update(defs::MODULE_UPDATE_TMP_DIR, &id, |mid, update_dir| {
-        do_enable_module(update_dir, mid, true)
+pub fn enable_module(id: &str) -> Result<()> {
+    update_module(defs::MODULE_UPDATE_TMP_DIR, id, |mid, update_dir| {
+        _enable_module(update_dir, mid, true)
     })
 }
 
-pub fn disable_module(id: String) -> Result<()> {
-    do_module_update(defs::MODULE_UPDATE_TMP_DIR, &id, |mid, update_dir| {
-        do_enable_module(update_dir, mid, false)
+pub fn disable_module(id: &str) -> Result<()> {
+    update_module(defs::MODULE_UPDATE_TMP_DIR, id, |mid, update_dir| {
+        _enable_module(update_dir, mid, false)
     })
 }
 
-fn do_list_modules(path: &str) -> Vec<HashMap<String, String>> {
+pub fn disable_all_modules() -> Result<()> {
+    // we assume the module dir is already mounted
+    let dir = std::fs::read_dir(defs::MODULE_DIR)?;
+    for entry in dir.flatten() {
+        let path = entry.path();
+        let disable_flag = path.join(defs::DISABLE_FILE_NAME);
+        if let Err(e) = ensure_file_exists(disable_flag) {
+            warn!("Failed to disable module: {}: {}", path.display(), e);
+        }
+    }
+
+    Ok(())
+}
+
+fn _list_modules(path: &str) -> Vec<HashMap<String, String>> {
     // first check enabled modules
     let dir = std::fs::read_dir(path);
     let Ok(dir) = dir else {
@@ -583,7 +646,7 @@ fn do_list_modules(path: &str) -> Vec<HashMap<String, String>> {
             warn!("Failed to read file: {}", module_prop.display());
             continue;
         };
-        let mut module_prop_map = HashMap::new();
+        let mut module_prop_map: HashMap<String, String> = HashMap::new();
         let encoding = encoding::all::UTF_8;
         let result =
             PropertiesIter::new_with_encoding(Cursor::new(content), encoding).read_into(|k, v| {
@@ -595,9 +658,9 @@ fn do_list_modules(path: &str) -> Vec<HashMap<String, String>> {
         let update = path.join(defs::UPDATE_FILE_NAME).exists();
         let remove = path.join(defs::REMOVE_FILE_NAME).exists();
 
-        module_prop_map.insert("enabled".to_string(), enabled.to_string());
-        module_prop_map.insert("update".to_string(), update.to_string());
-        module_prop_map.insert("remove".to_string(), remove.to_string());
+        module_prop_map.insert("enabled".to_owned(), enabled.to_string());
+        module_prop_map.insert("update".to_owned(), update.to_string());
+        module_prop_map.insert("remove".to_owned(), remove.to_string());
 
         if result.is_err() {
             warn!("Failed to parse module.prop: {}", module_prop.display());
@@ -610,7 +673,7 @@ fn do_list_modules(path: &str) -> Vec<HashMap<String, String>> {
 }
 
 pub fn list_modules() -> Result<()> {
-    let modules = do_list_modules(defs::MODULE_DIR);
+    let modules = _list_modules(defs::MODULE_DIR);
     println!("{}", serde_json::to_string_pretty(&modules)?);
     Ok(())
 }

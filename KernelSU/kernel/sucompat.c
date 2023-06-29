@@ -15,6 +15,7 @@
 #include "allowlist.h"
 #include "arch.h"
 #include "klog.h" // IWYU pragma: keep
+#include "ksud.h"
 
 #define SU_PATH "/system/bin/su"
 #define SH_PATH "/system/bin/sh"
@@ -52,7 +53,7 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 	if (IS_ERR(filename)) {
 		return 0;
 	}
-	if (!memcmp(filename->name, su, sizeof(su))) {
+	if (unlikely(!memcmp(filename->name, su, sizeof(su)))) {
 		pr_info("faccessat su->sh!\n");
 		*filename_user = sh_user_path();
 	}
@@ -72,7 +73,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 		return 0;
 	}
 
-	if (!filename_user) {
+	if (unlikely(!filename_user)) {
 		return 0;
 	}
 
@@ -81,7 +82,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 	if (IS_ERR(filename)) {
 		return 0;
 	}
-	if (!memcmp(filename->name, su, sizeof(su))) {
+	if (unlikely(!memcmp(filename->name, su, sizeof(su)))) {
 		pr_info("newfstatat su->sh!\n");
 		*filename_user = sh_user_path();
 	}
@@ -95,10 +96,10 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 				 void *argv, void *envp, int *flags)
 {
 	struct filename *filename;
-	const char sh[] = SH_PATH;
+	const char sh[] = KSUD_PATH;
 	const char su[] = SU_PATH;
 
-	if (!filename_ptr)
+	if (unlikely(!filename_ptr))
 		return 0;
 
 	filename = *filename_ptr;
@@ -106,16 +107,16 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 		return 0;
 	}
 
-	if (!ksu_is_allow_uid(current_uid().val)) {
+	if (likely(memcmp(filename->name, su, sizeof(su))))
 		return 0;
-	}
 
-	if (!memcmp(filename->name, su, sizeof(su))) {
-		pr_info("do_execveat_common su found\n");
-		memcpy((void *)filename->name, sh, sizeof(sh));
+	if (!ksu_is_allow_uid(current_uid().val))
+		return 0;
 
-		escape_to_root();
-	}
+	pr_info("do_execveat_common su found\n");
+	memcpy((void *)filename->name, sh, sizeof(sh));
+
+	escape_to_root();
 
 	return 0;
 }
@@ -134,9 +135,15 @@ static int faccessat_handler_pre(struct kprobe *p, struct pt_regs *regs)
 
 static int newfstatat_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
-	int *dfd = (int *)PT_REGS_PARM1(regs);
+	int *dfd = (int *)&PT_REGS_PARM1(regs);
 	const char __user **filename_user = (const char **)&PT_REGS_PARM2(regs);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+// static int vfs_statx(int dfd, const char __user *filename, int flags, struct kstat *stat, u32 request_mask)
 	int *flags = (int *)&PT_REGS_PARM3(regs);
+#else
+// int vfs_fstatat(int dfd, const char __user *filename, struct kstat *stat,int flag)
+	int *flags = (int *)&PT_REGS_PARM4(regs);
+#endif
 
 	return ksu_handle_stat(dfd, filename_user, flags);
 }
@@ -165,18 +172,20 @@ static struct kprobe faccessat_kp = {
 };
 
 static struct kprobe newfstatat_kp = {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 	.symbol_name = "vfs_statx",
+#else
+	.symbol_name = "vfs_fstatat",
+#endif
 	.pre_handler = newfstatat_handler_pre,
 };
 
 static struct kprobe execve_kp = {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
 	.symbol_name = "do_execveat_common",
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0) &&                        \
-	LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 	.symbol_name = "__do_execve_file",
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0) &&                        \
-	LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0)
 	.symbol_name = "do_execveat_common",
 #endif
 	.pre_handler = execve_handler_pre,
