@@ -26,7 +26,7 @@ elif [ "$1" = "--old" ]; then
 VERSION=Old
 elif [ "$1" = "--new" ]; then
 VERSION=New
-echo "CONFIG_XIAOMI_NEWCAM=y" >> arch/arm64/configs/lavender-perf_defconfig
+echo "CONFIG_XIAOMI_NEWCAM=y" >> arch/arm64/configs/lavender_defconfig
 fi
 
 # Kernel Defconfig
@@ -66,7 +66,7 @@ DATE=$(TZ=Asia/Kolkata date +"%Y%m%d-%T")
 START=$(date +"%s")
 TANGGAL=$(date +"%F%S")
 
-FINAL_ZIP=${ZIPNAME}-EAS-${VERSION}-${DEVICE}-${TANGGAL}.zip
+FINAL_ZIP=${ZIPNAME}-EAS-KSU-${VERSION}-${DEVICE}-${TANGGAL}.zip
 ##----------------------------------------------------------##
 
 # Cloning Dependencies
