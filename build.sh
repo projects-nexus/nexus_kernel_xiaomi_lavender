@@ -8,7 +8,7 @@
 KERNEL_DIR="$(pwd)"
 
 # Zip Name
-ZIPNAME="Nexus-v10.2"
+ZIPNAME="Nexus-v10.3"
 
 # Specify compiler ( eva , azure , proton , arter , aosp & nexus )
 COMPILER=nexus
